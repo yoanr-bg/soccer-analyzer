@@ -3,7 +3,6 @@ import { useUser } from "./hooks/UseUser";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PositionSelector from './components/PositionSelector';
-import PositionSelector from './components/PositionSelector';
 import VideoAnalysis from './components/VideoAnalysis';
 import StatInput from './components/StatInput';
 import RatingResult from './components/RatingResult';
