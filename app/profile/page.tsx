@@ -156,7 +156,7 @@ const [seasonInput, setSeasonInput] = useState("");
   <button
       onClick={() => {
         const seasons = JSON.parse(localStorage.getItem("pastSeasons") || "[]")
-          .filter(s => s.userId === user.id);
+          .filter((s: any) => s.userId === user.id);
 
         if (seasons.length === 0) {
           alert("No past seasons saved yet.");
