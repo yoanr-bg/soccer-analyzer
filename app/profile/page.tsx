@@ -274,7 +274,7 @@ const [seasonInput, setSeasonInput] = useState("");
                     {Object.entries(averages[pos].positive).map(([k, v]) => (
                       <li key={k} className="flex justify-between">
                         <span className="text-green-500">{k}</span>
-                        <span className="font-semibold text-green-400">+{v}</span>
+                        <span className="font-semibold text-green-400">+{v as string}</span>
                       </li>
                     ))}
                   </ul>
@@ -290,7 +290,7 @@ const [seasonInput, setSeasonInput] = useState("");
                     {Object.entries(averages[pos].negative).map(([k, v]) => (
                       <li key={k} className="flex justify-between">
                         <span className="text-red-500">{k}</span>
-                        <span className="font-semibold text-red-400">-{v}</span>
+                        <span className="font-semibold text-red-400">-{v as string}</span>
                       </li>
                     ))}
                     
@@ -330,7 +330,7 @@ const [seasonInput, setSeasonInput] = useState("");
   );
 }
 
-function getRatingColor(rating) {
+function getRatingColor(rating: number) {
   if (rating < 6) return '#DC0C00';
   if (rating < 6.5) return '#ED7E07';
   if (rating < 7) return '#E4CE6F';
