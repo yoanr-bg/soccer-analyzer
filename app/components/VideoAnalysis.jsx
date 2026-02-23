@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Video, Check, AlertTriangle, Plus, Minus, ArrowLeft, ArrowRight, LayoutList, Layers } from "lucide-react";
+import { Link, Video, Check, AlertTriangle, Plus, Minus, ArrowLeft, ArrowRight, LayoutList, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const stats = [
@@ -106,13 +106,14 @@ const goalkeeperGroupedStats = gkCategoryOrder.map(cat => ({
 }));
 
 const ANALYSIS_STAGES = [
-  { label: 'Uploading video to Gemini...', progress: 15 },
-  { label: 'Processing video file...', progress: 35 },
-  { label: 'Identifying your player...', progress: 50 },
-  { label: 'Analyzing shooting actions...', progress: 60 },
-  { label: 'Analyzing passing actions...', progress: 68 },
-  { label: 'Analyzing dribbling & possession...', progress: 76 },
-  { label: 'Analyzing defensive actions...', progress: 84 },
+  { label: 'Fetching video from URL...', progress: 10 },
+  { label: 'Uploading to Gemini...', progress: 25 },
+  { label: 'Processing video file...', progress: 45 },
+  { label: 'Identifying your player...', progress: 55 },
+  { label: 'Analyzing shooting actions...', progress: 63 },
+  { label: 'Analyzing passing actions...', progress: 71 },
+  { label: 'Analyzing dribbling & possession...', progress: 78 },
+  { label: 'Analyzing defensive actions...', progress: 85 },
   { label: 'Counting cards & misc stats...', progress: 91 },
   { label: 'Compiling results...', progress: 97 },
 ];
@@ -198,20 +199,18 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
     return outfieldGroupedStats;
   })();
 
-  const [step, setStep] = useState("upload");
-  const [videoFile, setVideoFile] = useState(null);
-  const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
-  const [jerseyDescription, setJerseyDescription] = useState("");
-  const [error, setError] = useState("");
+  const [step, setStep] = useState('upload');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [jerseyDescription, setJerseyDescription] = useState('');
+  const [error, setError] = useState('');
   const [values, setValues] = useState({});
   const [categoryIndex, setCategoryIndex] = useState(0);
   const [showAll, setShowAll] = useState(false);
   const cols = useColumnCount();
   const [progress, setProgress] = useState(0);
-  const [stageLabel, setStageLabel] = useState("");
+  const [stageLabel, setStageLabel] = useState('');
   const stageIndexRef = useRef(0);
   const progressTimerRef = useRef(null);
-  const fileInputRef = useRef(null);
 
   const totalCategories = groupedStats.length;
   const currentGroup = groupedStats[categoryIndex];
@@ -219,22 +218,6 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
 
   const getValue = (id) => values[id] ?? 0;
   const bump = (id, delta) => setValues(prev => ({ ...prev, [id]: Math.max(0, (prev[id] ?? 0) + delta) }));
-
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setVideoFile(file);
-    setVideoPreviewUrl(URL.createObjectURL(file));
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('video/')) {
-      setVideoFile(file);
-      setVideoPreviewUrl(URL.createObjectURL(file));
-    }
-  };
 
   const startProgress = () => {
     stageIndexRef.current = 0;
@@ -255,39 +238,38 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
   const finishProgress = () => {
     if (progressTimerRef.current) clearTimeout(progressTimerRef.current);
     setProgress(100);
-    setStageLabel("Analysis complete!");
+    setStageLabel('Analysis complete!');
   };
 
   useEffect(() => () => { if (progressTimerRef.current) clearTimeout(progressTimerRef.current); }, []);
 
   const handleAnalyze = async () => {
-    if (!videoFile || !jerseyDescription.trim()) return;
-    setStep("analyzing");
-    setError("");
+    if (!videoUrl.trim() || !jerseyDescription.trim()) return;
+    setStep('analyzing');
+    setError('');
     startProgress();
     try {
-      const formData = new FormData();
-      formData.append("video", videoFile);
-      formData.append("jerseyDescription", jerseyDescription.trim());
-      formData.append("positionId", positionId);
-
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        body: formData, // no Content-Type header — browser sets multipart boundary automatically
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoUrl: videoUrl.trim(),
+          jerseyDescription: jerseyDescription.trim(),
+          positionId,
+        }),
       });
-
       const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || "Server error");
+      if (!res.ok || data.error) throw new Error(data.error || 'Server error');
       finishProgress();
       setTimeout(() => {
         setValues(data.stats ?? {});
         setCategoryIndex(0);
-        setStep("review");
+        setStep('review');
       }, 800);
     } catch (err) {
       if (progressTimerRef.current) clearTimeout(progressTimerRef.current);
-      setError(err.message || "Unknown error");
-      setStep("error");
+      setError(err.message || 'Unknown error');
+      setStep('error');
     }
   };
 
@@ -303,7 +285,7 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
   return (
     <div className="min-h-screen bg-gray-900 p-4 flex flex-col font-mono">
 
-      {(step === "upload" || step === "error") && (
+      {(step === 'upload' || step === 'error') && (
         <div className="max-w-2xl mx-auto w-full mb-8">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-teal-400 text-3xl font-extrabold uppercase tracking-widest">AI Video Analysis</h1>
@@ -321,37 +303,28 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
 
       <AnimatePresence mode="wait">
 
-        {/* ── UPLOAD ── */}
-        {step === "upload" && (
+        {step === 'upload' && (
           <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="max-w-2xl mx-auto w-full flex flex-col gap-6">
 
-            {/* Drop zone */}
-            <div
-              onDrop={handleDrop}
-              onDragOver={e => e.preventDefault()}
-              onClick={() => fileInputRef.current?.click()}
-              className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200
-                ${videoFile ? 'border-teal-500 bg-teal-500/10' : 'border-gray-600 hover:border-teal-600 bg-gray-800/50'}`}
-            >
-              <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} className="hidden" />
-              {videoFile ? (
-                <div className="flex flex-col items-center gap-3">
-                  <Video className="w-12 h-12 text-teal-400" />
-                  <p className="text-white font-bold text-lg">{videoFile.name}</p>
-                  <p className="text-gray-400 text-sm">{(videoFile.size / (1024 * 1024)).toFixed(1)} MB — click to change</p>
-                  {videoPreviewUrl && <video src={videoPreviewUrl} className="mt-2 rounded-xl max-h-48 w-full object-cover" muted />}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-3">
-                  <Upload className="w-12 h-12 text-gray-500" />
-                  <p className="text-gray-300 font-bold text-lg">Drop your match video here</p>
-                  <p className="text-gray-500 text-sm">or click to browse — MP4, MOV, AVI supported</p>
-                </div>
-              )}
+            <div className="flex flex-col gap-2">
+              <label className="text-gray-400 text-sm uppercase tracking-widest">Video Link</label>
+              <div className="relative">
+                <Link className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input type="url" value={videoUrl} onChange={e => setVideoUrl(e.target.value)}
+                  placeholder="https://example.com/match.mp4"
+                  className="w-full bg-gray-800 border-2 border-gray-700 focus:border-teal-500 text-white rounded-xl pl-12 pr-4 py-4 outline-none text-base placeholder-gray-600 transition-colors" />
+              </div>
+              <p className="text-gray-600 text-xs">Must be a direct video link (MP4, MOV, AVI). YouTube links are <span className="text-red-500">not supported</span>.</p>
             </div>
 
-            {/* Jersey description */}
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col gap-2">
+              <p className="text-gray-400 text-sm font-bold uppercase tracking-widest mb-1">How to get a direct link</p>
+              <p className="text-gray-500 text-xs"><span className="text-teal-400 font-bold">Google Drive:</span> Share → Anyone with link → copy URL, then change <code className="text-gray-300">/view</code> to <code className="text-gray-300">/uc?export=download</code></p>
+              <p className="text-gray-500 text-xs"><span className="text-teal-400 font-bold">Dropbox:</span> Share → copy link, then change <code className="text-gray-300">?dl=0</code> to <code className="text-gray-300">?dl=1</code></p>
+              <p className="text-gray-500 text-xs"><span className="text-teal-400 font-bold">Direct MP4:</span> Any publicly accessible .mp4 URL works directly</p>
+            </div>
+
             <div className="flex flex-col gap-2">
               <label className="text-gray-400 text-sm uppercase tracking-widest">Describe yourself in the video</label>
               <input type="text" value={jerseyDescription} onChange={e => setJerseyDescription(e.target.value)}
@@ -359,19 +332,17 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
                 className="bg-gray-800 border-2 border-gray-700 focus:border-teal-500 text-white rounded-xl px-4 py-3 outline-none text-base placeholder-gray-600 transition-colors" />
             </div>
 
-            {/* Warning */}
             <div className="flex gap-3 bg-amber-900/20 border border-amber-700/50 rounded-xl p-4">
               <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
               <p className="text-amber-300 text-sm">
                 AI analysis is approximate. You will review and correct every stat before submitting.
-                Full match videos (90 min) may take 2–5 minutes. Keep files under 2GB.
+                Full match videos (90 min) may take 2–5 minutes to process.
               </p>
             </div>
 
-            {/* Analyze button */}
-            <button onClick={handleAnalyze} disabled={!videoFile || !jerseyDescription.trim()}
+            <button onClick={handleAnalyze} disabled={!videoUrl.trim() || !jerseyDescription.trim()}
               className={`h-14 rounded-xl text-lg font-extrabold uppercase tracking-widest transition-all duration-200
-                ${videoFile && jerseyDescription.trim()
+                ${videoUrl.trim() && jerseyDescription.trim()
                   ? 'bg-gradient-to-r from-teal-500 to-green-500 text-gray-900 hover:from-teal-400 hover:to-green-400'
                   : 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700'}`}>
               Analyze Video
@@ -379,14 +350,13 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
           </motion.div>
         )}
 
-        {/* ── ANALYZING ── */}
-        {step === "analyzing" && (
+        {step === 'analyzing' && (
           <motion.div key="analyzing" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
             className="flex-1 flex flex-col items-center justify-center gap-10 py-16 max-w-2xl mx-auto w-full">
             <div className="relative">
               <div className="w-24 h-24 rounded-full border-4 border-gray-700" />
               <motion.div className="absolute inset-0 w-24 h-24 rounded-full border-4 border-teal-400 border-t-transparent"
-                animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }} />
+                animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }} />
               <Video className="absolute inset-0 m-auto w-10 h-10 text-teal-400" />
             </div>
             <div className="text-center w-full">
@@ -394,15 +364,14 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
               <p className="text-gray-400 text-sm mb-6">{stageLabel}</p>
               <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden shadow-inner mb-2">
                 <motion.div className="h-full bg-gradient-to-r from-teal-400 to-green-500 rounded-full"
-                  animate={{ width: `${progress}%` }} transition={{ duration: 0.8, ease: "easeInOut" }} />
+                  animate={{ width: `${progress}%` }} transition={{ duration: 0.8, ease: 'easeInOut' }} />
               </div>
               <p className="text-teal-400 text-sm font-bold tabular-nums">{progress}%</p>
             </div>
           </motion.div>
         )}
 
-        {/* ── ERROR ── */}
-        {step === "error" && (
+        {step === 'error' && (
           <motion.div key="error" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto w-full flex flex-col items-center gap-6 py-12">
             <AlertTriangle className="w-16 h-16 text-red-400" />
@@ -411,16 +380,14 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
               <p className="text-red-400 text-sm max-w-md font-mono bg-gray-800 p-4 rounded-xl">{error}</p>
             </div>
             <div className="flex gap-4">
-              <button onClick={() => setStep("upload")} className="px-6 py-3 bg-gray-800 border border-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors font-bold">Try Again</button>
+              <button onClick={() => setStep('upload')} className="px-6 py-3 bg-gray-800 border border-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors font-bold">Try Again</button>
               <button onClick={onSkip} className="px-6 py-3 bg-teal-600 text-white rounded-xl hover:bg-teal-500 transition-colors font-bold">Enter Manually</button>
             </div>
           </motion.div>
         )}
 
-        {/* ── REVIEW ── */}
-        {step === "review" && (
+        {step === 'review' && (
           <motion.div key="review" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col w-full">
-
             <div className="flex items-center gap-4 mb-6">
               <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden shadow-inner">
                 <motion.div className="h-full bg-gradient-to-r from-teal-400 to-green-500 rounded-full"
@@ -501,7 +468,6 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
 
       </AnimatePresence>
 
-      {/* Fixed home button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-900/95 border-t border-teal-500/50 backdrop-blur-sm">
         <div className="max-w-md mx-auto text-center">
           <button onClick={onSkip} className="w-70 bg-teal-500 text-gray-900 font-extrabold text-lg py-3 rounded-xl shadow-lg hover:bg-teal-400 transition-colors duration-200 uppercase tracking-widest">

@@ -3,123 +3,6 @@ export const maxDuration = 300;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-export const config = {
-  api: {
-    bodyParser: false,
-    responseLimit: false,
-  },
-};
-
-export async function POST(request) {
-  if (!GEMINI_API_KEY) {
-    return Response.json({ error: "Gemini API key not configured on server." }, { status: 500 });
-  }
-
-  // Parse multipart form data (file upload from browser)
-  const formData = await request.formData();
-  const file = formData.get("video");
-  const jerseyDescription = formData.get("jerseyDescription");
-  const positionId = formData.get("positionId");
-
-  if (!file || !jerseyDescription || !positionId) {
-    return Response.json({ error: "Missing required fields." }, { status: 400 });
-  }
-
-  try {
-    // ── Step 1: Upload file directly to Gemini Files API ──
-    const fileBuffer = await file.arrayBuffer();
-    const mimeType = file.type || "video/mp4";
-
-    const uploadRes = await fetch(
-      `https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=multipart&key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": mimeType },
-        body: fileBuffer,
-      }
-    );
-
-    if (!uploadRes.ok) {
-      const err = await uploadRes.text();
-      return Response.json({ error: `Gemini upload failed: ${err}` }, { status: 500 });
-    }
-
-    const uploadData = await uploadRes.json();
-    const fileUri = uploadData.file?.uri;
-    const fileName = uploadData.file?.name;
-
-    if (!fileUri) {
-      return Response.json({ error: "No file URI returned from Gemini." }, { status: 500 });
-    }
-
-    // ── Step 2: Poll until ACTIVE ──
-    let fileState = uploadData.file?.state;
-    let attempts = 0;
-
-    while (fileState === "PROCESSING" && attempts < 60) {
-      await new Promise(r => setTimeout(r, 5000));
-      const pollRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${GEMINI_API_KEY}`
-      );
-      const pollData = await pollRes.json();
-      fileState = pollData.state;
-      attempts++;
-    }
-
-    if (fileState !== "ACTIVE") {
-      return Response.json({ error: `File processing failed with state: ${fileState}` }, { status: 500 });
-    }
-
-    // ── Step 3: Analyze with Gemini ──
-    const prompt = buildPrompt(jerseyDescription, positionId);
-
-    const analysisRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: prompt },
-              { file_data: { mime_type: mimeType, file_uri: fileUri } },
-            ]
-          }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
-        }),
-      }
-    );
-
-    if (!analysisRes.ok) {
-      const err = await analysisRes.text();
-      return Response.json({ error: `Gemini analysis failed: ${err}` }, { status: 500 });
-    }
-
-    const analysisData = await analysisRes.json();
-    const rawText = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    // ── Step 4: Parse JSON ──
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return Response.json({ error: "Could not extract stats from Gemini response." }, { status: 500 });
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
-    const sanitized = {};
-    Object.entries(parsed).forEach(([k, v]) => {
-      sanitized[k] = Math.max(0, Math.round(Number(v) || 0));
-    });
-
-    return Response.json({ stats: sanitized });
-
-  } catch (err) {
-    console.error("analyze route error:", err);
-    return Response.json({ error: err.message || "Unknown server error." }, { status: 500 });
-  }
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 const DEFENSIVE_POSITIONS = ['left_center_back', 'right_center_back', 'left_back', 'right_back'];
 
 const STAT_NAMES = {
@@ -164,33 +47,147 @@ const DEFENDER_STAT_IDS = ['goalsConceded'];
 function buildPrompt(jerseyDescription, positionId) {
   const isGK = positionId === 'goalkeeper';
   const isDefender = DEFENSIVE_POSITIONS.includes(positionId);
-
   const statList = [
     ...ALL_STAT_IDS,
     ...(isGK ? GK_STAT_IDS : []),
     ...(isDefender ? DEFENDER_STAT_IDS : []),
   ];
-
   const statLines = statList.map(id => `  "${id}": <count>  // ${STAT_NAMES[id]}`).join('\n');
-
   return `You are a football (soccer) performance analyst. Watch this match video carefully.
 
-The player I want you to track and analyze is: ${jerseyDescription}
+The player to track: ${jerseyDescription}
 
-Count every instance of the following actions performed BY THIS PLAYER AND ONLY THIS PLAYER. Be as accurate as possible. If unsure about a stat, set it to 0.
+Count every instance of each action performed BY THIS PLAYER ONLY. If unsure, set to 0.
 
-Return ONLY a valid JSON object with these exact keys and integer values (no explanation, no markdown, no extra text):
+Return ONLY a valid JSON object with these exact keys and integer values (no explanation, no markdown):
 
 {
 ${statLines}
 }
 
-Important notes:
-- Only count actions by the specific player described above
+Notes:
 - "goals" = non-penalty goals only
 - "mistakes" = offsides + unsuccessful dribbles combined
 - "possession_lost" = times the player lost the ball under pressure
 - "errors_chance" = errors directly leading to an opposition chance or goal
-${isGK ? `- This player is the GOALKEEPER - focus heavily on saves, runs out, distribution and errors` : ''}
-${isDefender ? `- Track "goalsConceded" = number of goals scored against the team while this player was on the pitch` : ''}`;
+${isGK ? '- This player is the GOALKEEPER — focus on saves, runs out, distribution and errors' : ''}
+${isDefender ? '- "goalsConceded" = goals scored against the team while this player was on the pitch' : ''}`;
+}
+
+export async function POST(request) {
+  if (!GEMINI_API_KEY) {
+    return Response.json({ error: 'Gemini API key not configured on server.' }, { status: 500 });
+  }
+
+  const { videoUrl, jerseyDescription, positionId } = await request.json();
+
+  if (!videoUrl || !jerseyDescription || !positionId) {
+    return Response.json({ error: 'Missing required fields.' }, { status: 400 });
+  }
+
+  try {
+    // ── Step 1: Fetch video server-side ──────────────────────────────────────
+    const videoRes = await fetch(videoUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': new URL(videoUrl).origin + '/',
+        'Accept': 'video/mp4,video/*;q=0.9,*/*;q=0.8',
+      },
+    });
+
+    if (!videoRes.ok) {
+      return Response.json({ error: `Could not fetch video — HTTP ${videoRes.status}. Make sure the link is a direct public download URL.` }, { status: 400 });
+    }
+
+    const contentType = videoRes.headers.get('content-type') || 'video/mp4';
+    if (!contentType.startsWith('video/')) {
+      return Response.json({ error: `URL does not point to a video file (got: ${contentType}). Use a direct download link.` }, { status: 400 });
+    }
+
+    const videoBuffer = await videoRes.arrayBuffer();
+
+    // ── Step 2: Upload to Gemini Files API ───────────────────────────────────
+    const uploadRes = await fetch(
+      `https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=multipart&key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': contentType },
+        body: videoBuffer,
+      }
+    );
+
+    if (!uploadRes.ok) {
+      const err = await uploadRes.text();
+      return Response.json({ error: `Gemini upload failed: ${err}` }, { status: 500 });
+    }
+
+    const uploadData = await uploadRes.json();
+    const fileUri = uploadData.file?.uri;
+    const fileName = uploadData.file?.name;
+    let fileState = uploadData.file?.state;
+
+    if (!fileUri) {
+      return Response.json({ error: 'No file URI returned from Gemini.' }, { status: 500 });
+    }
+
+    // ── Step 3: Poll until ACTIVE ────────────────────────────────────────────
+    let attempts = 0;
+    while (fileState === 'PROCESSING' && attempts < 60) {
+      await new Promise(r => setTimeout(r, 5000));
+      const pollRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${GEMINI_API_KEY}`
+      );
+      const pollData = await pollRes.json();
+      fileState = pollData.state;
+      attempts++;
+    }
+
+    if (fileState !== 'ACTIVE') {
+      return Response.json({ error: `File processing failed with state: ${fileState}` }, { status: 500 });
+    }
+
+    // ── Step 4: Analyze with Gemini ──────────────────────────────────────────
+    const analysisRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: buildPrompt(jerseyDescription, positionId) },
+              { file_data: { mime_type: contentType, file_uri: fileUri } },
+            ]
+          }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+        }),
+      }
+    );
+
+    if (!analysisRes.ok) {
+      const err = await analysisRes.text();
+      return Response.json({ error: `Gemini analysis failed: ${err}` }, { status: 500 });
+    }
+
+    const analysisData = await analysisRes.json();
+    const rawText = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // ── Step 5: Parse JSON ───────────────────────────────────────────────────
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return Response.json({ error: 'Could not extract stats from Gemini response.' }, { status: 500 });
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    const sanitized = {};
+    Object.entries(parsed).forEach(([k, v]) => {
+      sanitized[k] = Math.max(0, Math.round(Number(v) || 0));
+    });
+
+    return Response.json({ stats: sanitized });
+
+  } catch (err) {
+    console.error('analyze route error:', err);
+    return Response.json({ error: err.message || 'Unknown server error.' }, { status: 500 });
+  }
 }
