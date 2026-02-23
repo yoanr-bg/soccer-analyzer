@@ -3,6 +3,13 @@ export const maxDuration = 300;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
+export const config = {
+  api: {
+    bodyParser: false,
+    responseLimit: false,
+  },
+};
+
 export async function POST(request) {
   if (!GEMINI_API_KEY) {
     return Response.json({ error: "Gemini API key not configured on server." }, { status: 500 });
