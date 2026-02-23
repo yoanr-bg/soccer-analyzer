@@ -1,7 +1,5 @@
-export const maxDuration = 300; // 5 min max for video processing
-
 // app/api/analyze/route.js
-// Server-side — GEMINI_API_KEY is never exposed to the browser
+export const maxDuration = 300;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -10,42 +8,27 @@ export async function POST(request) {
     return Response.json({ error: "Gemini API key not configured on server." }, { status: 500 });
   }
 
-  const { videoUrl, jerseyDescription, positionId } = await request.json();
+  // Parse multipart form data (file upload from browser)
+  const formData = await request.formData();
+  const file = formData.get("video");
+  const jerseyDescription = formData.get("jerseyDescription");
+  const positionId = formData.get("positionId");
 
-  if (!videoUrl || !jerseyDescription || !positionId) {
+  if (!file || !jerseyDescription || !positionId) {
     return Response.json({ error: "Missing required fields." }, { status: 400 });
   }
 
   try {
-    // ── Step 1: Fetch the video from the URL ──
-    const videoRes = await fetch(videoUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': new URL(videoUrl).origin + '/',
-        'Accept': 'video/mp4,video/*;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-    });
-    if (!videoRes.ok) {
-      const errText = await videoRes.text().catch(() => '');
-      console.error('Video fetch error:', videoRes.status, errText);
-      return Response.json({ error: `Could not fetch video — got HTTP ${videoRes.status}. Make sure the link is public and a direct download URL (not a webpage).` }, { status: 400 });
-    }
+    // ── Step 1: Upload file directly to Gemini Files API ──
+    const fileBuffer = await file.arrayBuffer();
+    const mimeType = file.type || "video/mp4";
 
-    const contentType = videoRes.headers.get("content-type") || "video/mp4";
-    if (!contentType.startsWith("video/")) {
-      return Response.json({ error: `URL does not point to a video file (got: ${contentType}). Make sure you're using a direct download link.` }, { status: 400 });
-    }
-
-    const videoBuffer = await videoRes.arrayBuffer();
-
-    // ── Step 2: Upload to Gemini Files API ──
     const uploadRes = await fetch(
       `https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=multipart&key=${GEMINI_API_KEY}`,
       {
         method: "POST",
-        headers: { "Content-Type": contentType },
-        body: videoBuffer,
+        headers: { "Content-Type": mimeType },
+        body: fileBuffer,
       }
     );
 
@@ -62,7 +45,7 @@ export async function POST(request) {
       return Response.json({ error: "No file URI returned from Gemini." }, { status: 500 });
     }
 
-    // ── Step 3: Poll until file is ACTIVE ──
+    // ── Step 2: Poll until ACTIVE ──
     let fileState = uploadData.file?.state;
     let attempts = 0;
 
@@ -80,7 +63,7 @@ export async function POST(request) {
       return Response.json({ error: `File processing failed with state: ${fileState}` }, { status: 500 });
     }
 
-    // ── Step 4: Analyze with Gemini 1.5 Pro ──
+    // ── Step 3: Analyze with Gemini ──
     const prompt = buildPrompt(jerseyDescription, positionId);
 
     const analysisRes = await fetch(
@@ -92,7 +75,7 @@ export async function POST(request) {
           contents: [{
             parts: [
               { text: prompt },
-              { file_data: { mime_type: contentType, file_uri: fileUri } },
+              { file_data: { mime_type: mimeType, file_uri: fileUri } },
             ]
           }],
           generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
@@ -108,7 +91,7 @@ export async function POST(request) {
     const analysisData = await analysisRes.json();
     const rawText = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    // ── Step 5: Parse JSON ──
+    // ── Step 4: Parse JSON ──
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return Response.json({ error: "Could not extract stats from Gemini response." }, { status: 500 });
@@ -123,11 +106,12 @@ export async function POST(request) {
     return Response.json({ stats: sanitized });
 
   } catch (err) {
+    console.error("analyze route error:", err);
     return Response.json({ error: err.message || "Unknown server error." }, { status: 500 });
   }
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const DEFENSIVE_POSITIONS = ['left_center_back', 'right_center_back', 'left_back', 'right_back'];
 
@@ -186,7 +170,7 @@ function buildPrompt(jerseyDescription, positionId) {
 
 The player I want you to track and analyze is: ${jerseyDescription}
 
-Your job is to count every instance of the following actions performed BY THIS PLAYER AND ONLY THIS PLAYER throughout the entire video. Be as accurate as possible. If you are unsure about a stat, set it to 0 rather than guessing.
+Count every instance of the following actions performed BY THIS PLAYER AND ONLY THIS PLAYER. Be as accurate as possible. If unsure about a stat, set it to 0.
 
 Return ONLY a valid JSON object with these exact keys and integer values (no explanation, no markdown, no extra text):
 

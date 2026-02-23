@@ -1,10 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, Check, AlertTriangle, Video, Plus, Minus, ArrowLeft, ArrowRight, LayoutList, Layers } from "lucide-react";
+import { Upload, Video, Check, AlertTriangle, Plus, Minus, ArrowLeft, ArrowRight, LayoutList, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// ─── Stat definitions (identical to StatInput) ───────────────────────────────
 const stats = [
   { id: 'goals', name: 'Non-Penalty Goals', category: 'Shooting' },
   { id: 'shot_creation', name: 'Shots Taken', category: 'Shooting' },
@@ -66,7 +65,6 @@ const defensive_position_stats = [
 
 const DEFENSIVE_POSITIONS = ['left_center_back', 'right_center_back', 'left_back', 'right_back'];
 
-// ─── Styles (identical to StatInput) ─────────────────────────────────────────
 const categoryColors = {
   'Shooting':      'from-red-600 to-red-800',
   'Passing':       'from-blue-600 to-blue-800',
@@ -107,21 +105,18 @@ const goalkeeperGroupedStats = gkCategoryOrder.map(cat => ({
   stats: goalkeeper_stats.filter(s => s.category === cat),
 }));
 
-// ─── Analysis stages for progress bar ────────────────────────────────────────
 const ANALYSIS_STAGES = [
-  { label: 'Fetching video from URL...', progress: 8 },
-  { label: 'Uploading to Gemini...', progress: 20 },
-  { label: 'Processing video file...', progress: 40 },
-  { label: 'Identifying your player...', progress: 55 },
-  { label: 'Analyzing shooting actions...', progress: 63 },
-  { label: 'Analyzing passing actions...', progress: 71 },
-  { label: 'Analyzing dribbling & possession...', progress: 78 },
-  { label: 'Analyzing defensive actions...', progress: 85 },
+  { label: 'Uploading video to Gemini...', progress: 15 },
+  { label: 'Processing video file...', progress: 35 },
+  { label: 'Identifying your player...', progress: 50 },
+  { label: 'Analyzing shooting actions...', progress: 60 },
+  { label: 'Analyzing passing actions...', progress: 68 },
+  { label: 'Analyzing dribbling & possession...', progress: 76 },
+  { label: 'Analyzing defensive actions...', progress: 84 },
   { label: 'Counting cards & misc stats...', progress: 91 },
   { label: 'Compiling results...', progress: 97 },
 ];
 
-// ─── useColumnCount (identical to StatInput) ──────────────────────────────────
 function useColumnCount() {
   const [cols, setCols] = useState(1);
   useEffect(() => {
@@ -140,7 +135,6 @@ function useColumnCount() {
   return cols;
 }
 
-// ─── StatRow (identical to StatInput) ────────────────────────────────────────
 function StatRow({ stat, value, onBump, accent }) {
   const maxValue = stat.max !== undefined ? stat.max : Infinity;
   const atMin = value <= 0;
@@ -148,38 +142,27 @@ function StatRow({ stat, value, onBump, accent }) {
   return (
     <div className="flex items-center bg-gray-800/80 rounded-2xl border border-gray-700 px-4 py-3 gap-3">
       <span className="flex-1 text-white text-lg font-semibold tracking-wide leading-snug">{stat.name}</span>
-      <button
-        onClick={() => !atMin && onBump(stat.id, -1)}
-        disabled={atMin}
+      <button onClick={() => !atMin && onBump(stat.id, -1)} disabled={atMin}
         className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-all duration-100 select-none flex-shrink-0
-          ${atMin ? 'bg-gray-800 text-gray-600 border border-gray-700 cursor-not-allowed opacity-40' : `${accent.minusBtn} cursor-pointer`}`}
-      >
+          ${atMin ? 'bg-gray-800 text-gray-600 border border-gray-700 cursor-not-allowed opacity-40' : `${accent.minusBtn} cursor-pointer`}`}>
         <Minus className="w-4 h-4" />
       </button>
       <AnimatePresence mode="wait">
-        <motion.span
-          key={value}
-          initial={{ scale: 1.5, opacity: 0.5 }}
-          animate={{ scale: 1, opacity: 1 }}
+        <motion.span key={value} initial={{ scale: 1.5, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 500, damping: 22 }}
-          className={`w-10 text-center text-2xl font-extrabold tabular-nums flex-shrink-0 ${value === 0 ? 'text-gray-600' : accent.text}`}
-        >
+          className={`w-10 text-center text-2xl font-extrabold tabular-nums flex-shrink-0 ${value === 0 ? 'text-gray-600' : accent.text}`}>
           {value}
         </motion.span>
       </AnimatePresence>
-      <button
-        onClick={() => !atMax && onBump(stat.id, 1)}
-        disabled={atMax}
+      <button onClick={() => !atMax && onBump(stat.id, 1)} disabled={atMax}
         className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white transition-all duration-100 select-none flex-shrink-0
-          ${atMax ? 'bg-gray-800 text-gray-600 border border-gray-700 cursor-not-allowed opacity-40' : `${accent.plusBtn} cursor-pointer`}`}
-      >
+          ${atMax ? 'bg-gray-800 text-gray-600 border border-gray-700 cursor-not-allowed opacity-40' : `${accent.plusBtn} cursor-pointer`}`}>
         <Plus className="w-4 h-4" />
       </button>
     </div>
   );
 }
 
-// ─── CategoryColumn (identical to StatInput) ─────────────────────────────────
 function CategoryColumn({ group, getValue, bump }) {
   const accent = categoryAccent[group.category];
   return (
@@ -196,7 +179,6 @@ function CategoryColumn({ group, getValue, bump }) {
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
 export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
   const positionId = typeof position === 'object' ? position?.id : String(position ?? '').toLowerCase();
   const positionName = typeof position === 'object' ? position?.name : positionId;
@@ -204,7 +186,6 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
   const isGK = positionId === 'goalkeeper';
   const isDefensivePosition = DEFENSIVE_POSITIONS.includes(positionId);
 
-  // Build grouped stats exactly like StatInput does
   const groupedStats = (() => {
     if (isGK) return [...goalkeeperGroupedStats, ...outfieldGroupedStats];
     if (isDefensivePosition) {
@@ -217,25 +198,20 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
     return outfieldGroupedStats;
   })();
 
-  // App step: upload → analyzing → review
   const [step, setStep] = useState("upload");
-
-  // Upload form
-  const [videoUrl, setVideoUrl] = useState("");
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
   const [jerseyDescription, setJerseyDescription] = useState("");
   const [error, setError] = useState("");
-
-  // Review state — same pattern as StatInput
   const [values, setValues] = useState({});
   const [categoryIndex, setCategoryIndex] = useState(0);
   const [showAll, setShowAll] = useState(false);
   const cols = useColumnCount();
-
-  // Progress bar
   const [progress, setProgress] = useState(0);
   const [stageLabel, setStageLabel] = useState("");
   const stageIndexRef = useRef(0);
   const progressTimerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const totalCategories = groupedStats.length;
   const currentGroup = groupedStats[categoryIndex];
@@ -243,6 +219,22 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
 
   const getValue = (id) => values[id] ?? 0;
   const bump = (id, delta) => setValues(prev => ({ ...prev, [id]: Math.max(0, (prev[id] ?? 0) + delta) }));
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVideoFile(file);
+    setVideoPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('video/')) {
+      setVideoFile(file);
+      setVideoPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   const startProgress = () => {
     stageIndexRef.current = 0;
@@ -269,16 +261,21 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
   useEffect(() => () => { if (progressTimerRef.current) clearTimeout(progressTimerRef.current); }, []);
 
   const handleAnalyze = async () => {
-    if (!videoUrl.trim() || !jerseyDescription.trim()) return;
+    if (!videoFile || !jerseyDescription.trim()) return;
     setStep("analyzing");
     setError("");
     startProgress();
     try {
+      const formData = new FormData();
+      formData.append("video", videoFile);
+      formData.append("jerseyDescription", jerseyDescription.trim());
+      formData.append("positionId", positionId);
+
       const res = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ videoUrl: videoUrl.trim(), jerseyDescription: jerseyDescription.trim(), positionId }),
+        body: formData, // no Content-Type header — browser sets multipart boundary automatically
       });
+
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || "Server error");
       finishProgress();
@@ -306,7 +303,6 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
   return (
     <div className="min-h-screen bg-gray-900 p-4 flex flex-col font-mono">
 
-      {/* Header — shown on upload/error only */}
       {(step === "upload" || step === "error") && (
         <div className="max-w-2xl mx-auto w-full mb-8">
           <div className="flex items-center justify-between mb-2">
@@ -325,40 +321,59 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
 
       <AnimatePresence mode="wait">
 
-        {/* ── URL INPUT ── */}
+        {/* ── UPLOAD ── */}
         {step === "upload" && (
-          <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-2xl mx-auto w-full flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="text-gray-400 text-sm uppercase tracking-widest">Video Link</label>
-              <div className="relative">
-                <Link className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input type="url" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="https://example.com/match.mp4"
-                  className="w-full bg-gray-800 border-2 border-gray-700 focus:border-teal-500 text-white rounded-xl pl-12 pr-4 py-4 outline-none text-base placeholder-gray-600 transition-colors" />
-              </div>
-              <p className="text-gray-600 text-xs">Must be a direct video link (MP4, MOV, AVI). YouTube links are <span className="text-red-500">not supported</span>.</p>
+          <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="max-w-2xl mx-auto w-full flex flex-col gap-6">
+
+            {/* Drop zone */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={e => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200
+                ${videoFile ? 'border-teal-500 bg-teal-500/10' : 'border-gray-600 hover:border-teal-600 bg-gray-800/50'}`}
+            >
+              <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} className="hidden" />
+              {videoFile ? (
+                <div className="flex flex-col items-center gap-3">
+                  <Video className="w-12 h-12 text-teal-400" />
+                  <p className="text-white font-bold text-lg">{videoFile.name}</p>
+                  <p className="text-gray-400 text-sm">{(videoFile.size / (1024 * 1024)).toFixed(1)} MB — click to change</p>
+                  {videoPreviewUrl && <video src={videoPreviewUrl} className="mt-2 rounded-xl max-h-48 w-full object-cover" muted />}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  <Upload className="w-12 h-12 text-gray-500" />
+                  <p className="text-gray-300 font-bold text-lg">Drop your match video here</p>
+                  <p className="text-gray-500 text-sm">or click to browse — MP4, MOV, AVI supported</p>
+                </div>
+              )}
             </div>
 
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col gap-2">
-              <p className="text-gray-400 text-sm font-bold uppercase tracking-widest mb-1">How to get a direct link</p>
-              <p className="text-gray-500 text-xs"><span className="text-teal-400 font-bold">Google Drive:</span> Share → Anyone with link → copy, then change <code className="text-gray-300">/view</code> to <code className="text-gray-300">/uc?export=download</code></p>
-              <p className="text-gray-500 text-xs"><span className="text-teal-400 font-bold">Dropbox:</span> Share → copy link, then change <code className="text-gray-300">?dl=0</code> to <code className="text-gray-300">?dl=1</code></p>
-              <p className="text-gray-500 text-xs"><span className="text-teal-400 font-bold">Direct MP4:</span> Any publicly accessible .mp4 URL works directly</p>
-            </div>
-
+            {/* Jersey description */}
             <div className="flex flex-col gap-2">
               <label className="text-gray-400 text-sm uppercase tracking-widest">Describe yourself in the video</label>
-              <input type="text" value={jerseyDescription} onChange={e => setJerseyDescription(e.target.value)} placeholder='e.g. "red number 9 jersey, tall with blonde hair"'
+              <input type="text" value={jerseyDescription} onChange={e => setJerseyDescription(e.target.value)}
+                placeholder='e.g. "red number 9 jersey, tall with blonde hair"'
                 className="bg-gray-800 border-2 border-gray-700 focus:border-teal-500 text-white rounded-xl px-4 py-3 outline-none text-base placeholder-gray-600 transition-colors" />
             </div>
 
+            {/* Warning */}
             <div className="flex gap-3 bg-amber-900/20 border border-amber-700/50 rounded-xl p-4">
               <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <p className="text-amber-300 text-sm">AI analysis is approximate. You will review and correct every stat before submitting. Full match videos may take 2–5 minutes.</p>
+              <p className="text-amber-300 text-sm">
+                AI analysis is approximate. You will review and correct every stat before submitting.
+                Full match videos (90 min) may take 2–5 minutes. Keep files under 2GB.
+              </p>
             </div>
 
-            <button onClick={handleAnalyze} disabled={!videoUrl.trim() || !jerseyDescription.trim()}
+            {/* Analyze button */}
+            <button onClick={handleAnalyze} disabled={!videoFile || !jerseyDescription.trim()}
               className={`h-14 rounded-xl text-lg font-extrabold uppercase tracking-widest transition-all duration-200
-                ${videoUrl.trim() && jerseyDescription.trim() ? 'bg-gradient-to-r from-teal-500 to-green-500 text-gray-900 hover:from-teal-400 hover:to-green-400' : 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700'}`}>
+                ${videoFile && jerseyDescription.trim()
+                  ? 'bg-gradient-to-r from-teal-500 to-green-500 text-gray-900 hover:from-teal-400 hover:to-green-400'
+                  : 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700'}`}>
               Analyze Video
             </button>
           </motion.div>
@@ -402,11 +417,10 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
           </motion.div>
         )}
 
-        {/* ── REVIEW (identical layout to StatInput) ── */}
+        {/* ── REVIEW ── */}
         {step === "review" && (
           <motion.div key="review" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col w-full">
 
-            {/* Top bar — progress + show all toggle */}
             <div className="flex items-center gap-4 mb-6">
               <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden shadow-inner">
                 <motion.div className="h-full bg-gradient-to-r from-teal-400 to-green-500 rounded-full"
@@ -420,7 +434,6 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
               </button>
             </div>
 
-            {/* Step dots — single-category mode */}
             {!showAll && (
               <div className="flex justify-center gap-2 mb-8">
                 {groupedStats.map((g, i) => (
@@ -430,20 +443,17 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
               </div>
             )}
 
-            {/* ── Single category view ── */}
             {!showAll && (
               <div className="flex-1 flex flex-col items-center max-w-xl mx-auto w-full pb-28">
                 <AnimatePresence mode="wait">
                   <motion.div key={categoryIndex} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}
                     transition={{ type: 'tween', duration: 0.2 }} className="w-full">
-
                     <div className="text-center mb-8">
                       <div className={`inline-flex px-5 py-2 rounded-full bg-gradient-to-r ${categoryColors[currentGroup.category]} text-white text-sm font-bold mb-3 shadow-lg uppercase tracking-wider`}>
                         {currentGroup.category}
                       </div>
                       <p className="text-gray-500 text-sm uppercase tracking-widest">{categoryIndex + 1} / {totalCategories}</p>
                     </div>
-
                     <div className="flex flex-col gap-3">
                       {currentGroup.stats.map((stat, i) => (
                         <motion.div key={stat.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
@@ -451,7 +461,6 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
                         </motion.div>
                       ))}
                     </div>
-
                     <div className="flex items-center justify-center gap-4 mt-8">
                       <Button onClick={handlePrevCategory} disabled={categoryIndex === 0}
                         className="h-14 px-6 bg-gray-800 border-2 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white rounded-xl transition-colors font-semibold disabled:opacity-30">
@@ -472,7 +481,6 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
               </div>
             )}
 
-            {/* ── Show all view ── */}
             {showAll && (
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex-1 pb-28 w-full">
                 <div className="w-full" style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: '1rem', alignItems: 'start' }}>
@@ -488,7 +496,6 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
                 </div>
               </motion.div>
             )}
-
           </motion.div>
         )}
 
@@ -502,7 +509,6 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
           </button>
         </div>
       </div>
-
     </div>
   );
 }
