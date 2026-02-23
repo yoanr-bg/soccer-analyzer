@@ -17,10 +17,9 @@ export default function Home() {
   const [stats, setStats] = useState(null);
 
 useEffect(() => {
-    if (!user) router.push('/login');
-  }, [user]);
-
-  if (!user) return null;
+  const storedUser = localStorage.getItem('user');
+  if (!storedUser) router.push('/login');
+}, []); // only runs once on mount
 
   const handlePositionSelect = (position) => {
     setSelectedPosition(position);
