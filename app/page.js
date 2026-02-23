@@ -1,17 +1,27 @@
 "use client";
 import { useUser } from "./hooks/UseUser";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import PositionSelector from './components/PositionSelector';
 import PositionSelector from './components/PositionSelector';
 import VideoAnalysis from './components/VideoAnalysis';
 import StatInput from './components/StatInput';
 import RatingResult from './components/RatingResult';
 
+
 export default function Home() {
   const user = useUser();
+  const router = useRouter();
   const [step, setStep] = useState('position');
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [prefillStats, setPrefillStats] = useState({});
   const [stats, setStats] = useState(null);
+
+useEffect(() => {
+    if (!user) router.push('/login');
+  }, [user]);
+
+  if (!user) return null;
 
   const handlePositionSelect = (position) => {
     setSelectedPosition(position);
