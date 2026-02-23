@@ -107,14 +107,14 @@ export async function POST(request) {
     const videoBuffer = await videoRes.arrayBuffer();
 
     // ── Step 2: Upload to Gemini Files API ───────────────────────────────────
-    const uploadRes = await fetch(
-      `https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=multipart&key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': contentType },
-        body: videoBuffer,
-      }
-    );
+ const uploadRes = await fetch(
+  `https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=multipart&key=${GEMINI_API_KEY}`,
+  {
+    method: 'POST',
+    headers: { 'Content-Type': contentType },
+    body: videoRes.body, // stream directly, never loads into memory
+  }
+);
 
     if (!uploadRes.ok) {
       const err = await uploadRes.text();
