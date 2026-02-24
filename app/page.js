@@ -3,7 +3,7 @@ import { useUser } from "./hooks/UseUser";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PositionSelector from './components/PositionSelector';
-import VideoAnalysis from './components/VideoAnalysis';
+// import VideoAnalysis from './components/VideoAnalysis';
 import StatInput from './components/StatInput';
 import RatingResult from './components/RatingResult';
 
@@ -13,7 +13,7 @@ export default function Home() {
   const router = useRouter();
   const [step, setStep] = useState('position');
   const [selectedPosition, setSelectedPosition] = useState(null);
-  const [prefillStats, setPrefillStats] = useState({});
+  //const [prefillStats, setPrefillStats] = useState({});
   const [stats, setStats] = useState(null);
 
 useEffect(() => {
@@ -23,18 +23,18 @@ useEffect(() => {
 
   const handlePositionSelect = (position) => {
     setSelectedPosition(position);
-    setStep('video');                  // ← go to video analysis first
+    setStep('stats');                  // ← go to video analysis first
   };
 
-  const handleStatsExtracted = (extractedStats) => {
-    setPrefillStats(extractedStats);   // ← pre-fill StatInput with AI stats
-    setStep('stats');
-  };
+  //const handleStatsExtracted = (extractedStats) => {
+    //setPrefillStats(extractedStats);   // ← pre-fill StatInput with AI stats
+    //setStep('stats');
+  //};
 
-  const handleSkipVideo = () => {
-    setPrefillStats({});               // ← no pre-fill, manual entry
-    setStep('stats');
-  };
+  //const handleSkipVideo = () => {
+    //setPrefillStats({});               // ← no pre-fill, manual entry
+    //setStep('stats');
+  //};
 
   const handleStatsComplete = (statValues) => {
     setStats(statValues);
@@ -58,21 +58,21 @@ useEffect(() => {
     return <PositionSelector onSelect={handlePositionSelect} />;
   }
 
-  if (step === 'video') {
-    return (
-      <VideoAnalysis
-        position={selectedPosition}
-        onStatsExtracted={handleStatsExtracted}
-        onSkip={handleSkipVideo}
-      />
-    );
-  }
+  //if (step === 'video') {
+    //return (
+      //<VideoAnalysis
+        //position={selectedPosition}
+        //onStatsExtracted={handleStatsExtracted}
+        //onSkip={handleSkipVideo}
+      ///>
+    //);
+  //}
 
   if (step === 'stats') {
     return (
       <StatInput
         position={selectedPosition}
-        initialValues={prefillStats}   // ← StatInput uses this to seed values
+        //initialValues={prefillStats}   // ← StatInput uses this to seed values
         onComplete={handleStatsComplete}
         onPrev={() => setStep('video')}
       />
