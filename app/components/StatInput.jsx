@@ -41,8 +41,8 @@ const stats = [
   { id: 'duels_won', name: 'Duels Won', category: 'Defending' },
   { id: 'duels_lost', name: 'Duels Lost', category: 'Defending' },
   { id: 'fouls_committed', name: 'Fouls Committed', category: 'Defending' },
-  { id: 'yellow_cards', name: 'Yellow Cards', category: 'Miscellaneous' },
-  { id: 'red_card', name: 'Red Card', category: 'Miscellaneous' },
+  { id: 'yellow_cards', name: 'Yellow Cards', category: 'Miscellaneous', max: 2 },
+  { id: 'red_card', name: 'Red Card', category: 'Miscellaneous', max: 1 },
 ];
 
 const goalkeeper_stats = [

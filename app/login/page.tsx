@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -133,14 +135,23 @@ export default function LoginPage() {
         />
 
         {/* Password Input */}
-        <input
-          type="password"
-          placeholder="Enter Password"
-          className="p-3 rounded-lg bg-gray-700 text-white outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-500 border border-gray-700"
-          onChange={(e) => setPassword(e.target.value)}
-          value={password}
-          required
-        />
+<div className="relative">
+  <input
+    type={showPassword ? "text" : "password"}
+    placeholder="Enter Password"
+    className="w-full p-3 rounded-lg bg-gray-700 text-white outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-500 border border-gray-700 pr-12"
+    onChange={(e) => setPassword(e.target.value)}
+    value={password}
+    required
+  />
+  <button
+    type="button"
+    onClick={() => setShowPassword(v => !v)}
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-teal-400 transition-colors"
+  >
+    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+  </button>
+</div>
 
         {/* Primary Action Button */}
         <button
