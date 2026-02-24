@@ -86,8 +86,67 @@ export async function POST(request) {
   }
 
   try {
-    // ── Send URL directly to Gemini — server never touches the video file ────
-    // Gemini fetches the video itself from the URL
+    // ── Step 1: Fetch video server-side ──────────────────────────────────────
+    const videoRes = await fetch(videoUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': new URL(videoUrl).origin + '/',
+        'Accept': 'video/mp4,video/*;q=0.9,*/*;q=0.8',
+      },
+    });
+
+    if (!videoRes.ok) {
+      return Response.json({ error: `Could not fetch video — HTTP ${videoRes.status}. Make sure the link is a direct public download URL.` }, { status: 400 });
+    }
+
+    const contentType = videoRes.headers.get('content-type') || 'video/mp4';
+    if (!contentType.startsWith('video/')) {
+      return Response.json({ error: `URL does not point to a video file (got: ${contentType}). Use a direct download link.` }, { status: 400 });
+    }
+
+    const videoBuffer = await videoRes.arrayBuffer();
+
+    // ── Step 2: Upload to Gemini Files API ───────────────────────────────────
+    const uploadRes = await fetch(
+      `https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=multipart&key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': contentType },
+        body: videoBuffer,
+      }
+    );
+
+    if (!uploadRes.ok) {
+      const err = await uploadRes.text();
+      return Response.json({ error: `Gemini upload failed: ${err}` }, { status: 500 });
+    }
+
+    const uploadData = await uploadRes.json();
+    const fileUri = uploadData.file?.uri;
+    const fileName = uploadData.file?.name;
+    let fileState = uploadData.file?.state;
+
+    if (!fileUri) {
+      return Response.json({ error: 'No file URI returned from Gemini.' }, { status: 500 });
+    }
+
+    // ── Step 3: Poll until ACTIVE ────────────────────────────────────────────
+    let attempts = 0;
+    while (fileState === 'PROCESSING' && attempts < 60) {
+      await new Promise(r => setTimeout(r, 5000));
+      const pollRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${GEMINI_API_KEY}`
+      );
+      const pollData = await pollRes.json();
+      fileState = pollData.state;
+      attempts++;
+    }
+
+    if (fileState !== 'ACTIVE') {
+      return Response.json({ error: `File processing failed with state: ${fileState}` }, { status: 500 });
+    }
+
+    // ── Step 4: Analyze with Gemini ──────────────────────────────────────────
     const analysisRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
@@ -97,12 +156,7 @@ export async function POST(request) {
           contents: [{
             parts: [
               { text: buildPrompt(jerseyDescription, positionId) },
-              {
-                file_data: {
-                  mime_type: 'video/mp4',
-                  file_uri: videoUrl,
-                }
-              },
+              { file_data: { mime_type: contentType, file_uri: fileUri } },
             ]
           }],
           generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
@@ -112,14 +166,13 @@ export async function POST(request) {
 
     if (!analysisRes.ok) {
       const err = await analysisRes.text();
-      console.error('Gemini error:', err);
       return Response.json({ error: `Gemini analysis failed: ${err}` }, { status: 500 });
     }
 
     const analysisData = await analysisRes.json();
     const rawText = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    // ── Parse JSON from response ─────────────────────────────────────────────
+    // ── Step 5: Parse JSON ───────────────────────────────────────────────────
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       console.error('No JSON in response:', rawText);
