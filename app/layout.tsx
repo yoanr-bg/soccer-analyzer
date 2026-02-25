@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "Pitch-Perfect",
-  description: "Track your football match stats",
+  description: "Track your football match stats and performance",
   manifest: "/manifest.json",
-  themeColor: "#14b8a6",
+  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
