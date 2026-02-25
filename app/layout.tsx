@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ProfileButtonClient from "./ProfileButtonClient";  
 
+
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -14,9 +16,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Pitch Perfect",
-  description: "Analyzes football performance and provides ratings based on stats and video analysis.",
+export const metadata = {
+  title: "Pitch-Perfect",
+  description: "Track your football match stats",
+  manifest: "/manifest.json",
+  themeColor: "#14b8a6",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

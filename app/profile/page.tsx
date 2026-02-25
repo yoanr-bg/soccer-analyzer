@@ -231,7 +231,7 @@ const [seasonInput, setSeasonInput] = useState("");
       {/* Profile Header */}
       <div className="flex items-start gap-6 mb-12 border-b border-gray-700 pb-6">
         <img
-          src={user.image || "/default.png"}
+          src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "?")}&background=0f766e&color=fff&size=128`}
           className="w-24 h-24 rounded-full object-cover border-4 border-teal-400 shadow-xl"
           alt={`${user.name}'s profile picture`}
         />
