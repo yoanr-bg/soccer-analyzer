@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { supabase } from "../lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -10,6 +11,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Redirect if already logged in
   useEffect(() => {
@@ -21,25 +24,27 @@ export default function LoginPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = () => setImage(reader.result as string);
     reader.readAsDataURL(file);
   };
 
   // Handle registration
-  const handleRegister = () => {
-    if (!name || !password) {
-      alert("Name and password are required.");
-      return;
-    }
-
-    const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
+  const handleRegister = async () => {
+    if (!name || !password) { setError("Name and password are required."); return; }
+    setLoading(true);
+    setError("");
 
     // Check for duplicate username
-    const userExists = storedUsers.some((u: any) => u.name === name);
-    if (userExists) {
-      alert("This username is already taken.");
+    const { data: existing } = await supabase
+      .from("users")
+      .select("id")
+      .eq("name", name)
+      .single();
+
+    if (existing) {
+      setError("This username is already taken.");
+      setLoading(false);
       return;
     }
 
@@ -50,33 +55,41 @@ export default function LoginPage() {
       image: image || null,
     };
 
-    storedUsers.push(newUser);
-    localStorage.setItem("users", JSON.stringify(storedUsers));
-    localStorage.setItem("user", JSON.stringify(newUser)); // Current logged-in user
+    const { error: insertError } = await supabase.from("users").insert(newUser);
+
+    if (insertError) {
+      setError("Registration failed: " + insertError.message);
+      setLoading(false);
+      return;
+    }
+
+    localStorage.setItem("user", JSON.stringify(newUser));
     router.push("/");
   };
 
   // Handle login
-  const handleLogin = () => {
-    if (!name || !password) {
-      alert("Please enter both name and password.");
+  const handleLogin = async () => {
+    if (!name || !password) { setError("Please enter both name and password."); return; }
+    setLoading(true);
+    setError("");
+
+    const { data: matchedUser, error: fetchError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("name", name)
+      .eq("password", password)
+      .single();
+
+    if (fetchError || !matchedUser) {
+      setError("Login failed: Incorrect name or password.");
+      setLoading(false);
       return;
     }
 
-    const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
-    const matchedUser = storedUsers.find(
-      (u: any) => u.name === name && u.password === password
-    );
-
-    if (matchedUser) {
-      localStorage.setItem("user", JSON.stringify(matchedUser));
-      router.push("/");
-    } else {
-      alert("Login failed: Incorrect name or password.");
-    }
+    localStorage.setItem("user", JSON.stringify(matchedUser));
+    router.push("/");
   };
 
-  // Unified form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isRegistering) handleRegister();
@@ -93,32 +106,29 @@ export default function LoginPage() {
           {isRegistering ? "Create Account" : "Player Login"}
         </h1>
 
+        {/* Error message */}
+        {error && (
+          <div className="bg-red-900/50 border border-red-500 text-red-300 text-sm px-3 py-2 rounded-lg">
+            {error}
+          </div>
+        )}
+
         {/* Profile Picture Upload */}
         {isRegistering && (
           <div className="flex flex-col items-center gap-3">
             {image ? (
-              <img
-                src={image}
+              <img src={image}
                 className="w-24 h-24 rounded-full object-cover mx-auto border-4 border-teal-500 shadow-lg"
-                alt="Profile Preview"
-              />
+                alt="Profile Preview" />
             ) : (
               <div className="w-24 h-24 rounded-full bg-gray-700 mx-auto border-4 border-gray-600 flex items-center justify-center text-gray-400 text-sm">
                 No Image
               </div>
             )}
-
-            <input
-              id="profile-upload"
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={handleImageUpload}
-            />
-            <label
-              htmlFor="profile-upload"
-              className="bg-gray-700 hover:bg-gray-600 transition text-teal-400 py-2 px-4 rounded-lg text-center cursor-pointer font-semibold border border-teal-500/50"
-            >
+            <input id="profile-upload" type="file" accept="image/*"
+              style={{ display: "none" }} onChange={handleImageUpload} />
+            <label htmlFor="profile-upload"
+              className="bg-gray-700 hover:bg-gray-600 transition text-teal-400 py-2 px-4 rounded-lg text-center cursor-pointer font-semibold border border-teal-500/50">
               Upload Profile Picture (Optional)
             </label>
           </div>
@@ -135,45 +145,41 @@ export default function LoginPage() {
         />
 
         {/* Password Input */}
-<div className="relative">
-  <input
-    type={showPassword ? "text" : "password"}
-    placeholder="Enter Password"
-    className="w-full p-3 rounded-lg bg-gray-700 text-white outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-500 border border-gray-700 pr-12"
-    onChange={(e) => setPassword(e.target.value)}
-    value={password}
-    required
-  />
-  <button
-    type="button"
-    onClick={() => setShowPassword(v => !v)}
-    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-teal-400 transition-colors"
-  >
-    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-  </button>
-</div>
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter Password"
+            className="w-full p-3 rounded-lg bg-gray-700 text-white outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-500 border border-gray-700 pr-12"
+            onChange={(e) => setPassword(e.target.value)}
+            value={password}
+            required
+          />
+          <button type="button" onClick={() => setShowPassword(v => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-teal-400 transition-colors">
+            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          </button>
+        </div>
 
-        {/* Primary Action Button */}
+        {/* Submit Button */}
         <button
           type="submit"
-          className={`py-3 px-4 rounded-lg mt-3 font-extrabold text-lg uppercase tracking-wider transition-all duration-200 shadow-md ${
-            isRegistering
-              ? "bg-gradient-to-r from-teal-500 to-green-500 text-gray-900 hover:from-teal-600 hover:to-green-600"
-              : "bg-teal-500 text-gray-900 hover:bg-teal-400"
-          }`}
+          disabled={loading}
+          className={`py-3 px-4 rounded-lg mt-3 font-extrabold text-lg uppercase tracking-wider transition-all duration-200 shadow-md
+            ${loading ? "opacity-50 cursor-not-allowed bg-gray-600 text-gray-400" :
+              isRegistering
+                ? "bg-gradient-to-r from-teal-500 to-green-500 text-gray-900 hover:from-teal-600 hover:to-green-600"
+                : "bg-teal-500 text-gray-900 hover:bg-teal-400"}`}
         >
-          {isRegistering ? "Create Account" : "Log In"}
+          {loading ? "Please wait..." : isRegistering ? "Create Account" : "Log In"}
         </button>
 
-        {/* Secondary Switch Button */}
+        {/* Switch Button */}
         <button
           type="button"
-          onClick={() => setIsRegistering(!isRegistering)}
+          onClick={() => { setIsRegistering(!isRegistering); setError(""); }}
           className="text-teal-400 hover:text-white text-sm mt-2 transition-colors font-medium"
         >
-          {isRegistering
-            ? "Already have an account? Log In"
-            : "New player? Create an Account"}
+          {isRegistering ? "Already have an account? Log In" : "New player? Create an Account"}
         </button>
       </form>
     </div>
