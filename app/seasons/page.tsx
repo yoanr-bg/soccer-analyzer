@@ -71,30 +71,32 @@ export default function SeasonsPage() {
     else if (selectedSeasons.length > 0) setConfirmModal(true);
   };
 
-  const confirmDelete = async () => {
-    // Delete from Supabase
-    const { error } = await supabase
-      .from("past_seasons")
-      .delete()
-      .in("id", selectedSeasons);
+const confirmDelete = async () => {
+  // Delete from Supabase
+  console.log("Deleting IDs:", selectedSeasons);
+  const { error } = await supabase
+    .from("past_seasons")
+    .delete()
+    .in("id", selectedSeasons);
 
-    if (error) {
-      alert("Failed to delete: " + error.message);
-      return;
-    }
+  if (error) {
+    alert("Failed to delete: " + error.message);
+    return;
+  }
 
-    // Also remove from localStorage
-    const allSeasons = JSON.parse(localStorage.getItem("pastSeasons") || "[]");
-    localStorage.setItem("pastSeasons", JSON.stringify(
-      allSeasons.filter((s: any) => s.userId !== userId || !selectedSeasons.includes(s.id))
-    ));
+  // Also remove from localStorage
+  const allSeasons = JSON.parse(localStorage.getItem("pastSeasons") || "[]");
+  localStorage.setItem("pastSeasons", JSON.stringify(
+    allSeasons.filter((s) => 
+  (s.userId !== userId && s.user_id !== userId) || !selectedSeasons.includes(s.id)
+)
+  ));
 
-    setSeasons(prev => prev.filter(s => !selectedSeasons.includes(s.id)));
-    setSelectedSeasons([]);
-    setDeleteMode(false);
-    setConfirmModal(false);
-  };
-
+  setSeasons(prev => prev.filter(s => !selectedSeasons.includes(s.id)));
+  setSelectedSeasons([]);
+  setDeleteMode(false);
+  setConfirmModal(false);
+};
   const cancelDelete = () => {
     setDeleteMode(false);
     setSelectedSeasons([]);
