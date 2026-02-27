@@ -87,7 +87,7 @@ const confirmDelete = async () => {
   // Also remove from localStorage
   const allSeasons = JSON.parse(localStorage.getItem("pastSeasons") || "[]");
   localStorage.setItem("pastSeasons", JSON.stringify(
-    allSeasons.filter((s) => 
+    allSeasons.filter((s: any) =>
   (s.userId !== userId && s.user_id !== userId) || !selectedSeasons.includes(s.id)
 )
   ));
