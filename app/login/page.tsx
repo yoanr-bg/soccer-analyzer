@@ -36,17 +36,16 @@ export default function LoginPage() {
     setError("");
 
     // Check for duplicate username
-    const { data: existing } = await supabase
-      .from("users")
-      .select("id")
-      .eq("name", name)
-      .single();
+    const { data: existingUsers } = await supabase
+  .from("users")
+  .select("id")
+  .eq("name", name);
 
-    if (existing) {
-      setError("This username is already taken.");
-      setLoading(false);
-      return;
-    }
+if (existingUsers && existingUsers.length > 0) {
+  setError("This username is already taken.");
+  setLoading(false);
+  return;
+}
 
     const newUser = {
       id: Date.now().toString(),
@@ -138,6 +137,7 @@ export default function LoginPage() {
         <input
           type="text"
           placeholder="Enter Name"
+          autoComplete="username"
           className="p-3 rounded-lg bg-gray-700 text-white outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-500 border border-gray-700"
           onChange={(e) => setName(e.target.value)}
           value={name}
@@ -149,6 +149,7 @@ export default function LoginPage() {
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Enter Password"
+            autoComplete={isRegistering ? "new-password" : "current-password"}
             className="w-full p-3 rounded-lg bg-gray-700 text-white outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-500 border border-gray-700 pr-12"
             onChange={(e) => setPassword(e.target.value)}
             value={password}
