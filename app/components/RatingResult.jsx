@@ -154,7 +154,7 @@ function getRatingColor(rating) {
   return '#374DF5';
 }
 
-function getTopStats(stats) {
+function getTopStats(stats, position) {
   const statLabels = {
     goals: 'Goals', shot_creation: 'Shot Creation', dribbles: 'Dribbles',
     assists: 'Assists', penalties: 'Tap-ins', penalties_won: 'Penalties Won',
@@ -168,9 +168,20 @@ function getTopStats(stats) {
     duels_lost: 'Duels Lost', fouls_committed: 'Fouls Committed',
     yellow_cards: 'Yellow Cards', red_card: 'Red Cards', possession_lost: 'Possession Lost',
     goal_line_clearances: 'Goal-Line Clearances',
+    cleanSheet: 'Clean Sheet', totalSaves: 'Total Saves', savesInBox: 'Saves In Box',
+    punches: 'Punches', runsOut: 'Runs Out', highClaims: 'High Claims',
+    penaltySaved: 'Penalty Saved',
+    goalsConceded: 'Goals Conceded', unsucessfullRunsOut: 'Unsuccessful Runs Out',
+    gkErrorShot: 'Error Leading To Shot', gkErrorGoal: 'Error Leading To Goal',
+    penaltyConceded: 'Penalty Conceded',
   };
   const positiveStats = ['goals', 'assists', 'tackles', 'interceptions', 'key_passes', 'big_chances_made', 'duels_won', 'recoveries', 'clearances', 'blocks'];
   const negativeStats = ['errors_chance', 'mistakes', 'big_chances_missed', 'yellow_cards', 'red_card', 'duels_lost'];
+  const isGK = position?.id === 'goalkeeper';
+  if (isGK) {
+    positiveStats.push('cleanSheet', 'totalSaves', 'savesInBox', 'punches', 'runsOut', 'highClaims', 'penaltySaved');
+    negativeStats.push('goalsConceded', 'unsucessfullRunsOut', 'gkErrorShot', 'gkErrorGoal', 'penaltyConceded');
+  }
   const positive = positiveStats.filter(k => stats[k] > 0).map(k => ({ label: statLabels[k], value: stats[k] }));
   const negative = negativeStats.filter(k => stats[k] > 0).map(k => ({ label: statLabels[k], value: stats[k] }));
   return { positive: positive.slice(0, 3), negative: negative.slice(0, 3) };
@@ -179,7 +190,7 @@ function getTopStats(stats) {
 export default function RatingResult({ position, stats, onReset, user }) {
   const [displayRating, setDisplayRating] = useState(6.5);
   const rating = calculateRating(position, stats);
-  const { positive, negative } = getTopStats(stats);
+  const { positive, negative } = getTopStats(stats, position);
 
   // Animate rating counter
   useEffect(() => {
