@@ -237,7 +237,14 @@ export default function StatInput({ position, onComplete, onPrev, initialValues 
 
   // Build grouped stats: inject Goals Conceded into Defending for defensive outfield positions
   const groupedStats = (() => {
-    if (isGK) return [...goalkeeperGroupedStats, ...outfieldGroupedStats];
+    if (isGK) {
+      const filteredOutfield = outfieldGroupedStats.map(group =>
+        group.category === 'Defending'
+          ? { ...group, stats: group.stats.filter(s => s.id !== 'errors_chance') }
+          : group
+      );
+      return [...goalkeeperGroupedStats, ...filteredOutfield];
+    }
 
     if (isDefensivePosition) {
       return outfieldGroupedStats.map(group => {

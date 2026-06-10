@@ -188,7 +188,14 @@ export default function VideoAnalysis({ position, onStatsExtracted, onSkip }) {
   const isDefensivePosition = DEFENSIVE_POSITIONS.includes(positionId);
 
   const groupedStats = (() => {
-    if (isGK) return [...goalkeeperGroupedStats, ...outfieldGroupedStats];
+    if (isGK) {
+      const filteredOutfield = outfieldGroupedStats.map(group =>
+        group.category === 'Defending'
+          ? { ...group, stats: group.stats.filter(s => s.id !== 'errors_chance') }
+          : group
+      );
+      return [...goalkeeperGroupedStats, ...filteredOutfield];
+    }
     if (isDefensivePosition) {
       return outfieldGroupedStats.map(group =>
         group.category === 'Defending'
