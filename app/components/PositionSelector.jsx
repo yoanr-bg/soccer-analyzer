@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Target,
@@ -12,18 +12,32 @@ import {
   ShieldHalf,
 } from "lucide-react";
 
-const formationLayout = {
-  striker:           { top: "2%",   left: "45%" },
-  right_winger:      { top: "17%",  left: "86%" },
+const mobileLayout = {
+  striker:           { top: "5%",   left: "44.5%" },
+  right_winger:      { top: "17%",  left: "80%" },
   left_winger:       { top: "17%",  left: "2%" },
-  attacking_mid:     { top: "25%",  left: "40%" },
-  central_mid:       { top: "45%",  left: "20%" },
-  defensive_mid:     { top: "45%",  left: "60%" },
+  attacking_mid:     { top: "25%",  left: "34.5%" },
+  central_mid:       { top: "45%",  left: "15%" },
+  defensive_mid:     { top: "45%",  left: "55%" },
   left_back:         { top: "63%",  left: "5%" },
-  right_back:        { top: "63%",  left: "84%" },
-  left_center_back:  { top: "75%",  left: "26%" },
-  right_center_back: { top: "75%",  left: "56%" },
-  goalkeeper:        { top: "87%",  left: "44%" },
+  right_back:        { top: "63%",  left: "77%" },
+  left_center_back:  { top: "75%",  left: "20%" },
+  right_center_back: { top: "75%",  left: "55%" },
+  goalkeeper:        { top: "87%",  left: "42.3%" },
+};
+
+const desktopLayout = {
+  striker:           { top: "5%",   left: "45%" },
+  right_winger:      { top: "20%",  left: "86%" },
+  left_winger:       { top: "20%",  left: "2%" },
+  attacking_mid:     { top: "30%",  left: "40%" },
+  central_mid:       { top: "47%",  left: "20%" },
+  defensive_mid:     { top: "47%",  left: "60%" },
+  left_back:         { top: "66.5%", left: "5%" },
+  right_back:        { top: "66.5%", left: "84%" },
+  left_center_back:  { top: "78%",  left: "26%" },
+  right_center_back: { top: "78%",  left: "56%" },
+  goalkeeper:        { top: "90%",  left: "45.5%" },
 };
 
 const positions = [
@@ -55,7 +69,24 @@ function PitchStripes() {
   );
 }
 
+function useMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mq.matches);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  return isMobile;
+}
+
 export default function PositionSelector({ onSelect }) {
+  const isMobile = useMobile();
+  const formationLayout = isMobile ? mobileLayout : desktopLayout;
+
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-6"
@@ -90,8 +121,8 @@ export default function PositionSelector({ onSelect }) {
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="relative w-full max-w-3xl overflow-hidden"
-        style={{ aspectRatio: "4/5", containerType: "inline-size" }}
+        className={`relative w-full max-w-3xl ${isMobile ? "overflow-hidden" : ""}`}
+        style={{ aspectRatio: "4/5", ...(isMobile ? { containerType: "inline-size" } : {}) }}
       >
         {/* Outer glow border */}
         <div
