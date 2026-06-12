@@ -13,17 +13,17 @@ import {
 } from "lucide-react";
 
 const formationLayout = {
-  striker:           { top: "5%",   left: "46.5%" },
-  right_winger:      { top: "20%",  left: "85%" },
-  left_winger:       { top: "20%",  left: "5%" },
-  attacking_mid:     { top: "30%",  left: "41.6%" },
-  central_mid:       { top: "47%",  left: "19.25%" },
-  defensive_mid:     { top: "47%",  left: "65.75%" },
-  left_back:         { top: "66.5%", left: "8%" },
-  right_back:        { top: "66.5%", left: "82%" },
-  left_center_back:  { top: "78%",  left: "28.425%" },
-  right_center_back: { top: "78%",  left: "55.675%" },
-  goalkeeper:        { top: "90%",  left: "45.5%" },
+  striker:           { top: "3%",   left: "46%" },
+  right_winger:      { top: "18%",  left: "83%" },
+  left_winger:       { top: "18%",  left: "3%" },
+  attacking_mid:     { top: "28%",  left: "41%" },
+  central_mid:       { top: "45%",  left: "18.5%" },
+  defensive_mid:     { top: "45%",  left: "65%" },
+  left_back:         { top: "64%",  left: "6%" },
+  right_back:        { top: "64%",  left: "80%" },
+  left_center_back:  { top: "76%",  left: "27.5%" },
+  right_center_back: { top: "76%",  left: "54.5%" },
+  goalkeeper:        { top: "88%",  left: "45%" },
 };
 
 const positions = [
