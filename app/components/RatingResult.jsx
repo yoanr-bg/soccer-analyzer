@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { RotateCcw, Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -190,6 +190,7 @@ function getTopStats(stats, position) {
 
 export default function RatingResult({ position, stats, onReset, user }) {
   const [displayRating, setDisplayRating] = useState(6.5);
+  const savedRef = useRef(false);
   const rating = calculateRating(position, stats);
   const { positive, negative } = getTopStats(stats, position);
 
@@ -210,7 +211,8 @@ export default function RatingResult({ position, stats, onReset, user }) {
 
   // Save rating to Supabase + localStorage
   useEffect(() => {
-    if (!user || !position) return;
+    if (!user || !position || savedRef.current) return;
+    savedRef.current = true;
 
     const posKey = position.id || position.name.toLowerCase().replace(/ /g, "_");
     const entry = {
