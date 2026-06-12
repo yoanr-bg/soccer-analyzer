@@ -90,8 +90,8 @@ export default function PositionSelector({ onSelect }) {
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="relative w-full max-w-3xl"
-        style={{ aspectRatio: "4/5" }}
+        className="relative w-full max-w-3xl overflow-hidden"
+        style={{ aspectRatio: "4/5", containerType: "inline-size" }}
       >
         {/* Outer glow border */}
         <div
@@ -163,8 +163,8 @@ export default function PositionSelector({ onSelect }) {
                 {/* Circle */}
                 <div
                   style={{
-                    width: 58,
-                    height: 58,
+                    width: "min(58px, 10cqi)",
+                    height: "min(58px, 10cqi)",
                     borderRadius: "50%",
                     background: `radial-gradient(circle at 35% 35%, ${pos.color}dd, ${pos.color}88)`,
                     border: `2px solid ${pos.color}99`,
@@ -175,7 +175,7 @@ export default function PositionSelector({ onSelect }) {
                     backdropFilter: "blur(4px)",
                   }}
                 >
-                  <Icon style={{ color: "white", width: 22, height: 22, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }} />
+                  <Icon style={{ color: "white", width: "min(22px, 4.5cqi)", height: "min(22px, 4.5cqi)", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }} />
                 </div>
 
                 {/* Label */}
@@ -183,7 +183,7 @@ export default function PositionSelector({ onSelect }) {
                   className="text-white font-bold tracking-wide whitespace-nowrap mt-1 text-center"
                   style={{
                     fontFamily: "monospace",
-                    fontSize: "0.8rem",
+                    fontSize: "min(0.75rem, 2.5cqi)",
                     textShadow: `0 1px 4px rgba(0,0,0,0.9), 0 0 8px ${pos.glow}`,
                   }}
                 >
