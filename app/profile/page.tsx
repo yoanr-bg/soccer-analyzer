@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
+import { addToQueue } from "../lib/sync";
 
 const positions = [
   "striker", "left_winger", "right_winger", "attacking_mid",
@@ -133,12 +134,10 @@ export default function ProfilePage() {
       created_at: new Date().toISOString(),
     };
 
-    // Save to Supabase
-    const { error } = await supabase.from("past_seasons").insert(seasonData);
-    if (error) {
-      alert("Failed to save season: " + error.message);
-      return;
-    }
+    // Save to Supabase via sync queue
+    supabase.from("past_seasons").insert(seasonData).then(({ error }) => {
+      if (error) addToQueue({ type: "insert", table: "past_seasons", data: seasonData });
+    });
 
     // Also save to localStorage as backup
     const pastSeasons = JSON.parse(localStorage.getItem("pastSeasons") || "[]");
@@ -152,8 +151,10 @@ export default function ProfilePage() {
     });
     localStorage.setItem("pastSeasons", JSON.stringify(pastSeasons));
 
-    // Clear current stats from Supabase
-    await supabase.from("player_stats").delete().eq("user_id", user.id);
+    // Clear current stats from Supabase via sync queue
+    supabase.from("player_stats").delete().eq("user_id", user.id).then(({ error }) => {
+      if (error) addToQueue({ type: "delete", table: "player_stats", column: "user_id", value: user.id });
+    });
 
     // Clear localStorage stats too
     const savedStats = JSON.parse(localStorage.getItem("playerStats") || "{}");
@@ -175,8 +176,7 @@ export default function ProfilePage() {
       .eq("user_id", user.id);
 
     if (statsError) {
-      alert("Failed to delete stats: " + statsError.message);
-      return;
+      addToQueue({ type: "delete", table: "player_stats", column: "user_id", value: user.id });
     }
 
     const { error: seasonsError } = await supabase
@@ -185,8 +185,7 @@ export default function ProfilePage() {
       .eq("user_id", user.id);
 
     if (seasonsError) {
-      alert("Failed to delete seasons: " + seasonsError.message);
-      return;
+      addToQueue({ type: "delete", table: "past_seasons", column: "user_id", value: user.id });
     }
 
     const { error: userError } = await supabase
@@ -195,8 +194,7 @@ export default function ProfilePage() {
       .eq("id", user.id);
 
     if (userError) {
-      alert("Failed to delete account: " + userError.message);
-      return;
+      addToQueue({ type: "delete", table: "users", column: "id", value: user.id });
     }
 
     localStorage.clear();

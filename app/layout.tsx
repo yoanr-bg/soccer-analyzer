@@ -2,7 +2,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ProfileButtonClient from "./ProfileButtonClient";  
+import ProfileButtonClient from "./ProfileButtonClient";
+import SyncProviderClient from "./SyncProviderClient";  
 
 
 
@@ -33,9 +34,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ProfileButton />
         </nav>
 
-        <div className="pt-16">
-          {children}
-        </div>
+        <SyncProviderClient>
+          <div className="pt-16">
+            {children}
+          </div>
+        </SyncProviderClient>
       </body>
     </html>
   );

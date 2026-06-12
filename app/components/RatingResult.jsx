@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { RotateCcw, Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { supabase } from "../lib/supabase";
+import { addToQueue } from "../lib/sync";
 
 const positionPoints = {
   striker: {
@@ -224,7 +225,9 @@ export default function RatingResult({ position, stats, onReset, user }) {
 
     // Save to Supabase
     supabase.from("player_stats").insert(entry).then(({ error }) => {
-      if (error) console.error("Supabase save error:", error.message);
+      if (error) {
+        addToQueue({ type: "insert", table: "player_stats", data: entry });
+      }
     });
 
     // Also keep localStorage as backup so profile page works instantly

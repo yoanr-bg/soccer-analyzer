@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
+import { addToQueue } from "../lib/sync";
 
 function getRatingColor(rating: number): string {
   if (rating < 6) return '#DC0C00';
@@ -73,15 +74,13 @@ export default function SeasonsPage() {
 
 const confirmDelete = async () => {
   // Delete from Supabase
-  console.log("Deleting IDs:", selectedSeasons);
   const { error } = await supabase
     .from("past_seasons")
     .delete()
     .in("id", selectedSeasons);
 
   if (error) {
-    alert("Failed to delete: " + error.message);
-    return;
+    addToQueue({ type: "deleteMany", table: "past_seasons", column: "id", values: selectedSeasons });
   }
 
   // Also remove from localStorage

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { addToQueue } from "../lib/sync";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,18 +36,6 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    // Check for duplicate username
-    const { data: existingUsers } = await supabase
-  .from("users")
-  .select("id")
-  .eq("name", name);
-
-if (existingUsers && existingUsers.length > 0) {
-  setError("This username is already taken.");
-  setLoading(false);
-  return;
-}
-
     const newUser = {
       id: Date.now().toString(),
       name,
@@ -54,12 +43,23 @@ if (existingUsers && existingUsers.length > 0) {
       image: image || null,
     };
 
+    // Check for duplicate username (if online)
+    const { data: existingUsers } = await supabase
+      .from("users")
+      .select("id")
+      .eq("name", name);
+
+    if (existingUsers && existingUsers.length > 0) {
+      setError("This username is already taken.");
+      setLoading(false);
+      return;
+    }
+
     const { error: insertError } = await supabase.from("users").insert(newUser);
 
     if (insertError) {
-      setError("Registration failed: " + insertError.message);
-      setLoading(false);
-      return;
+      // Offline or server error — save locally and queue for later sync
+      addToQueue({ type: "insert", table: "users", data: newUser });
     }
 
     localStorage.setItem("user", JSON.stringify(newUser));
@@ -80,6 +80,19 @@ if (existingUsers && existingUsers.length > 0) {
       .single();
 
     if (fetchError || !matchedUser) {
+      // Fall back to localStorage for offline-registered users
+      const allUsers = [];
+      const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+      if (currentUser) allUsers.push(currentUser);
+
+      const localMatch = allUsers.find(u => u.name === name && u.password === password);
+      if (localMatch) {
+        localStorage.setItem("user", JSON.stringify(localMatch));
+        setLoading(false);
+        router.push("/");
+        return;
+      }
+
       setError("Login failed: Incorrect name or password.");
       setLoading(false);
       return;
