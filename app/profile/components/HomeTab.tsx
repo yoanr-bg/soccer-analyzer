@@ -64,15 +64,13 @@ export default function HomeTab({
     .sort((a, b) => Number(a.id) - Number(b.id))
     .map((s, i) => ({ label: `#${i + 1}`, rating: s.rating }));
 
-  const totalMatches = allStats.length;
-
   const posStats = allStats.filter((s) => s.position === defaultPos);
   const posMatches = posStats.length;
   const category = getCategoryForPosition(defaultPos);
   const keys = category ? categoryKeyStats[category] : [];
-  const statAverages = keys.map((key) => {
+  const statTotals = keys.map((key) => {
     const sum = posStats.reduce((acc, s) => acc + (s.stats[key] || 0), 0);
-    return { label: statLabels[key] || key, value: posMatches ? sum / posMatches : 0 };
+    return { label: statLabels[key] || key, value: sum };
   });
 
   return (
@@ -128,7 +126,7 @@ export default function HomeTab({
               <thead>
                 <tr className="border-b border-gray-700">
                   <th className="text-left text-gray-400 font-semibold py-2 pr-4 whitespace-nowrap">Matches</th>
-                  {statAverages.map((s) => (
+                  {statTotals.map((s) => (
                     <th key={s.label} className="text-left text-gray-400 font-semibold py-2 px-3 whitespace-nowrap">{s.label}</th>
                   ))}
                 </tr>
@@ -136,8 +134,8 @@ export default function HomeTab({
               <tbody>
                 <tr className="border-b border-gray-700/50">
                   <td className="py-3 pr-4 font-bold text-teal-400 text-lg">{posMatches}</td>
-                  {statAverages.map((s) => (
-                    <td key={s.label} className="py-3 px-3 text-white font-semibold">{s.value.toFixed(1)}</td>
+                  {statTotals.map((s) => (
+                    <td key={s.label} className="py-3 px-3 text-white font-semibold">{s.value}</td>
                   ))}
                 </tr>
               </tbody>
