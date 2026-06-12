@@ -25,6 +25,8 @@ export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [averages, setAverages] = useState<any>({});
   const [loading, setLoading] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -164,6 +166,43 @@ export default function ProfilePage() {
     setAverages({});
   };
 
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    const { error: statsError } = await supabase
+      .from("player_stats")
+      .delete()
+      .eq("user_id", user.id);
+
+    if (statsError) {
+      alert("Failed to delete stats: " + statsError.message);
+      return;
+    }
+
+    const { error: seasonsError } = await supabase
+      .from("past_seasons")
+      .delete()
+      .eq("user_id", user.id);
+
+    if (seasonsError) {
+      alert("Failed to delete seasons: " + seasonsError.message);
+      return;
+    }
+
+    const { error: userError } = await supabase
+      .from("users")
+      .delete()
+      .eq("id", user.id);
+
+    if (userError) {
+      alert("Failed to delete account: " + userError.message);
+      return;
+    }
+
+    localStorage.clear();
+    router.push("/login");
+  };
+
   const handleViewPastSeasons = async () => {
     const { data, error } = await supabase
       .from("past_seasons")
@@ -207,10 +246,16 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        <button onClick={() => { localStorage.removeItem("user"); router.push("/login"); }}
-          className="sm:absolute sm:top-5 sm:right-8 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm sm:text-base self-start sm:self-auto">
-          Logout
-        </button>
+        <div className="flex gap-2 sm:absolute sm:top-5 sm:right-8 self-start sm:self-auto">
+          <button onClick={() => { localStorage.removeItem("user"); router.push("/login"); }}
+            className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm sm:text-base">
+            Logout
+          </button>
+          <button onClick={() => setDeleteModalOpen(true)}
+            className="bg-gray-700 hover:bg-red-700 text-red-400 hover:text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm sm:text-base border border-red-800/50">
+            Delete Account
+          </button>
+        </div>
       </div>
 
       {/* New Season Modal */}
@@ -226,6 +271,32 @@ export default function ProfilePage() {
                 className="bg-gray-700 hover:bg-gray-600 text-white py-1 px-4 rounded-lg">Cancel</button>
               <button onClick={handleSaveSeason}
                 className="bg-teal-500 hover:bg-teal-400 text-gray-900 py-1 px-4 rounded-lg font-bold transition-colors">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-sm border border-red-800/50">
+            <h2 className="text-red-400 font-bold text-xl mb-2">Delete Account</h2>
+            <p className="text-gray-400 text-sm mb-4">
+              This will permanently delete your account, stats, and seasons. This action cannot be undone.
+            </p>
+            <p className="text-gray-300 text-sm mb-3">
+              Type <span className="text-red-400 font-bold">DELETE</span> to confirm:
+            </p>
+            <input type="text" value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="Type DELETE here"
+              className="w-full bg-gray-900 border-2 border-gray-600 text-white py-2 px-3 rounded-lg focus:border-red-500 outline-none placeholder-gray-500 mb-4" />
+            <div className="flex justify-end gap-3">
+              <button onClick={() => { setDeleteModalOpen(false); setDeleteConfirmText(""); }}
+                className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg">Cancel</button>
+              <button onClick={handleDeleteAccount} disabled={deleteConfirmText !== "DELETE"}
+                className="bg-red-600 hover:bg-red-500 text-white py-2 px-4 rounded-lg font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                Permanently Delete
+              </button>
             </div>
           </div>
         </div>
