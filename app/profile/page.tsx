@@ -53,33 +53,27 @@ export default function ProfilePage() {
       .select("*")
       .eq("user_id", u.id);
 
-    const statsMap = new Map<string, any>();
-    if (!error && rows) {
-      rows.forEach((r: any) => statsMap.set(String(r.id), r));
-    }
-
-    const savedStats = JSON.parse(localStorage.getItem("playerStats") || "{}");
-    const userStats = savedStats[u.id] || {};
-    for (const [pos, entries] of Object.entries(userStats)) {
-      if (Array.isArray(entries)) {
-        entries.forEach((e: any) => {
-          const id = e.timestamp?.toString() || Date.now().toString();
-          if (!statsMap.has(id)) {
-            statsMap.set(id, {
-              id,
-              user_id: u.id,
+    let stats: any[] = [];
+    if (!error && rows && rows.length > 0) {
+      stats = rows;
+    } else {
+      const savedStats = JSON.parse(localStorage.getItem("playerStats") || "{}");
+      const userStats = savedStats[u.id] || {};
+      for (const [pos, entries] of Object.entries(userStats)) {
+        if (Array.isArray(entries)) {
+          entries.forEach((e: any) => {
+            stats.push({
+              id: e.timestamp?.toString() || Date.now().toString(),
               position: pos,
               rating: e.rating,
               stats: e.stats || {},
               positive: e.positive || [],
               negative: e.negative || [],
             });
-          }
-        });
+          });
+        }
       }
     }
-
-    const stats = Array.from(statsMap.values());
 
     setAllStats(stats);
 
