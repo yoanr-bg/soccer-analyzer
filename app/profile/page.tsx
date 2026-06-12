@@ -55,7 +55,7 @@ export default function ProfilePage() {
 
     const statsMap = new Map<string, any>();
     if (!error && rows) {
-      rows.forEach((r: any) => statsMap.set(r.id, r));
+      rows.forEach((r: any) => statsMap.set(String(r.id), r));
     }
 
     const savedStats = JSON.parse(localStorage.getItem("playerStats") || "{}");

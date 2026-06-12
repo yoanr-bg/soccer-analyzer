@@ -66,6 +66,9 @@ export default function HomeTab({
 
   const posStats = allStats.filter((s) => s.position === defaultPos);
   const posMatches = posStats.length;
+  const posAvgRating = posMatches
+    ? (posStats.reduce((acc, s) => acc + Number(s.rating), 0) / posMatches).toFixed(2)
+    : "—";
   const category = getCategoryForPosition(defaultPos);
   const keys = category ? categoryKeyStats[category] : [];
   const statTotals = keys.map((key) => {
@@ -125,7 +128,8 @@ export default function HomeTab({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-700">
-                  <th className="text-left text-gray-400 font-semibold py-2 pr-4 whitespace-nowrap">Matches</th>
+                  <th className="text-left text-gray-400 font-semibold py-2 pr-4 whitespace-nowrap">Avg Rating</th>
+                  <th className="text-left text-gray-400 font-semibold py-2 px-3 whitespace-nowrap">Matches</th>
                   {statTotals.map((s) => (
                     <th key={s.label} className="text-left text-gray-400 font-semibold py-2 px-3 whitespace-nowrap">{s.label}</th>
                   ))}
@@ -133,7 +137,8 @@ export default function HomeTab({
               </thead>
               <tbody>
                 <tr className="border-b border-gray-700/50">
-                  <td className="py-3 pr-4 font-bold text-teal-400 text-lg">{posMatches}</td>
+                  <td className="py-3 pr-4 font-bold text-teal-400 text-lg">{posAvgRating}</td>
+                  <td className="py-3 px-3 font-bold text-white text-lg">{posMatches}</td>
                   {statTotals.map((s) => (
                     <td key={s.label} className="py-3 px-3 text-white font-semibold">{s.value}</td>
                   ))}
