@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Pitch-Perfect",
+  title: "PitchIQ",
   description: "Track your football match stats and performance",
   manifest: "/manifest.json",
   viewport: "width=device-width, initial-scale=1",

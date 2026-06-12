@@ -1,6 +1,6 @@
 {
-  "name": "Pitch-Perfect",
-  "short_name": "Pitch-Perfect",
+  "name": "PitchIQ",
+  "short_name": "PitchIQ",
   "description": "Track your football match stats and performance",
   "start_url": "/",
   "display": "standalone",

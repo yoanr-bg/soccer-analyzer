@@ -1,10 +1,10 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.pitchperfect.app',
-  appName: 'Pitch Perfect',
+  appId: 'com.pitchiq.app',
+  appName: 'PitchIQ',
   server: {
-    url: 'https://pitch-perfect.up.railway.app/',
+    url: 'https://pitch-iq.up.railway.app/',
     cleartext: false,
   },
 };
