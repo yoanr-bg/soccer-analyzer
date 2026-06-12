@@ -235,7 +235,7 @@ export default function RatingResult({ position, stats, onReset, user }) {
     const userStats = saved[user.id] || {};
     let posArray = userStats[posKey];
     if (!Array.isArray(posArray)) posArray = [];
-    posArray.push({ rating, positive: positive || [], negative: negative || [], timestamp: Date.now() });
+    posArray.push({ rating, stats, positive: positive || [], negative: negative || [], timestamp: Date.now() });
     const updated = { ...saved, [user.id]: { ...userStats, [posKey]: posArray } };
     localStorage.setItem("playerStats", JSON.stringify(updated));
   }, [user, position]);
@@ -314,10 +314,10 @@ export default function RatingResult({ position, stats, onReset, user }) {
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
-          <Button onClick={onReset}
+          <Button onClick={() => window.location.href = "/profile"}
             className="w-full h-14 bg-white text-slate-900 hover:bg-slate-100 rounded-xl text-lg font-semibold">
             <RotateCcw className="w-5 h-5 mr-2" />
-            Calculate Another Rating
+            Return to Home
           </Button>
         </motion.div>
       </motion.div>

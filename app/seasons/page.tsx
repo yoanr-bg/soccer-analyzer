@@ -150,7 +150,7 @@ const confirmDelete = async () => {
         {/* Home Button */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-900/95 border-t border-teal-500/50 backdrop-blur-sm z-40">
           <div className="max-w-md mx-auto text-center">
-            <button onClick={() => router.push("/")}
+            <button onClick={() => router.push("/profile")}
               className="w-full sm:w-70 bg-teal-500 text-gray-900 font-extrabold text-lg sm:text-xl py-3 rounded-xl shadow-lg hover:bg-teal-400 transition-colors duration-200 uppercase tracking-widest">
               Go To Home Page
             </button>

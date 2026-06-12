@@ -224,6 +224,7 @@ function CategoryColumn({ group, getValue, bump }) {
 }
 
 export default function StatInput({ position, onComplete, onPrev, initialValues = {} }) {
+  const router = useRouter();
   const [categoryIndex, setCategoryIndex] = useState(0);
   const [values, setValues] = useState(initialValues ?? {});
   const [showAll, setShowAll] = useState(false);
@@ -431,7 +432,7 @@ export default function StatInput({ position, onComplete, onPrev, initialValues 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-900/95 border-t border-teal-500/50 backdrop-blur-sm">
         <div className="max-w-md mx-auto text-center">
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => router.push("/profile")}
             className="w-70 bg-teal-500 text-gray-900 font-extrabold text-lg py-3 rounded-xl shadow-lg hover:bg-teal-400 transition-colors duration-200 uppercase tracking-widest"
           >
             Go To Home Page

@@ -18,7 +18,7 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     const user = localStorage.getItem("user");
-    if (user) router.push("/");
+    if (user) router.push("/profile");
   }, [router]);
 
   // Handle profile image upload
@@ -63,7 +63,7 @@ export default function LoginPage() {
     }
 
     localStorage.setItem("user", JSON.stringify(newUser));
-    router.push("/");
+    router.push("/profile");
   };
 
   // Handle login
@@ -89,7 +89,7 @@ export default function LoginPage() {
       if (localMatch) {
         localStorage.setItem("user", JSON.stringify(localMatch));
         setLoading(false);
-        router.push("/");
+        router.push("/profile");
         return;
       }
 
@@ -99,7 +99,7 @@ export default function LoginPage() {
     }
 
     localStorage.setItem("user", JSON.stringify(matchedUser));
-    router.push("/");
+    router.push("/profile");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
