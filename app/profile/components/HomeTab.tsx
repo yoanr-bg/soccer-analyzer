@@ -137,8 +137,8 @@ export default function HomeTab({
               </thead>
               <tbody>
                 <tr className="border-b border-gray-700/50">
-                  <td className="py-3 pr-4 font-bold text-teal-400 text-lg">{posAvgRating}</td>
-                  <td className="py-3 px-3 font-bold text-white text-lg">{posMatches}</td>
+                  <td className="py-3 pr-4 font-bold text-teal-400">{posAvgRating}</td>
+                  <td className="py-3 px-3 font-bold text-white">{posMatches}</td>
                   {statTotals.map((s) => (
                     <td key={s.label} className="py-3 px-3 text-white font-semibold">{s.value}</td>
                   ))}

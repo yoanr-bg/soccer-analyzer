@@ -235,7 +235,7 @@ export default function ProfilePage() {
       {/* Layout */}
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`${sidebarOpen ? "block" : "hidden"} lg:block w-56 bg-gray-800/50 border-r border-gray-700 min-h-[calc(100vh-52px)] flex-shrink-0`}>
+        <aside className={`${sidebarOpen ? "fixed inset-y-0 left-0 z-50" : "hidden"} lg:relative lg:block lg:z-auto w-56 bg-gray-800/50 border-r border-gray-700 min-h-[calc(100vh-52px)] flex-shrink-0`}>
           {/* Profile info */}
           <div className="p-4 border-b border-gray-700">
             <div className="flex items-center gap-3">
