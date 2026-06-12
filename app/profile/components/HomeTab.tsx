@@ -11,15 +11,16 @@ const positionCategories: Record<string, string[]> = {
 };
 
 const categoryKeyStats: Record<string, string[]> = {
-  forward: ["goals", "assists", "shot_creation", "dribbles"],
-  attacking_mid: ["assists", "key_passes", "big_chances_made", "passes_opp_half"],
+  forward: ["goals", "assists", "big_chances_made", "dribbles"],
+  attacking_mid: ["goals", "assists", "key_passes", "big_chances_made"],
+  central_mid: ["assists", "key_passes", "passes_own_half", "passes_opp_half"],
   defensive_mid: ["tackles", "interceptions", "passes_opp_half", "duels_won"],
   defender: ["tackles", "interceptions", "clearances", "blocks", "duels_won"],
   goalkeeper: ["totalSaves", "cleanSheet", "highClaims", "savesInBox"],
 };
 
 const statLabels: Record<string, string> = {
-  goals: "Goals", assists: "Assists", shot_creation: "Shot Creation", dribbles: "Dribbles",
+  goals: "Goals", assists: "Assists", dribbles: "Dribbles", passes_own_half : "Passes (Own Half)",
   key_passes: "Key Passes", big_chances_made: "Big Chances", passes_opp_half: "Passes (Opp Half)",
   tackles: "Tackles", interceptions: "Interceptions", clearances: "Clearances",
   blocks: "Blocks", duels_won: "Duels Won", totalSaves: "Saves", cleanSheet: "Clean Sheets",
