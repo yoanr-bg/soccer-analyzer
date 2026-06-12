@@ -36,16 +36,9 @@ export default function HomeTab({
   allStats: { id: string; position: string; rating: number; stats: Record<string, number> }[];
 }) {
   const [graphFilter, setGraphFilter] = useState("overall");
-  const [statsPosition, setStatsPosition] = useState("");
+  const [statsPosition, setStatsPosition] = useState("overall");
 
   const uniquePositions = Array.from(new Set(allStats.map((s) => s.position))).sort();
-  const defaultPos = statsPosition || uniquePositions[0] || "";
-
-  useEffect(() => {
-    if (!statsPosition && uniquePositions.length > 0) {
-      setStatsPosition(uniquePositions[0]);
-    }
-  }, [statsPosition, uniquePositions]);
 
   const graphOptions = [
     { value: "overall", label: "Overall" },
@@ -64,14 +57,19 @@ export default function HomeTab({
     .sort((a, b) => Number(a.id) - Number(b.id))
     .map((s, i) => ({ label: `#${i + 1}`, rating: s.rating }));
 
-  const posStats = allStats.filter((s) => s.position === defaultPos);
+  const isOverall = statsPosition === "overall";
+  const overallStatKeys = ["goals", "assists", "big_chances_made", "dribbles"];
+
+  const posStats = isOverall ? allStats : allStats.filter((s) => s.position === statsPosition);
   const posMatches = posStats.length;
   const posAvgRating = posMatches
     ? (posStats.reduce((acc, s) => acc + Number(s.rating), 0) / posMatches).toFixed(2)
     : "—";
-  const category = getCategoryForPosition(defaultPos);
-  const keys = category ? categoryKeyStats[category] : [];
-  const statTotals = keys.map((key) => {
+
+  const statKeys = isOverall
+    ? overallStatKeys
+    : (categoryKeyStats[getCategoryForPosition(statsPosition) || ""] || []);
+  const statTotals = statKeys.map((key) => {
     const sum = posStats.reduce((acc, s) => acc + (s.stats[key] || 0), 0);
     return { label: statLabels[key] || key, value: sum };
   });
@@ -108,15 +106,16 @@ export default function HomeTab({
       </div>
 
       {/* Key Stats Table */}
-      {uniquePositions.length > 0 && (
+      {allStats.length > 0 && (
         <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white">Key Stats</h3>
             <select
-              value={defaultPos}
+              value={statsPosition}
               onChange={(e) => setStatsPosition(e.target.value)}
               className="bg-gray-700 text-white text-sm border border-gray-600 rounded-lg px-3 py-1.5 outline-none focus:border-teal-500"
             >
+              <option value="overall">Overall</option>
               {uniquePositions.map((p) => (
                 <option key={p} value={p}>
                   {p.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}

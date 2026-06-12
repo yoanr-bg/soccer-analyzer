@@ -283,7 +283,7 @@ export default function ProfilePage() {
           ) : activeTab === "home" ? (
             <HomeTab allStats={allStats} />
           ) : activeTab === "analysis" ? (
-            <AnalysisTab averages={averages} />
+            <AnalysisTab allStats={allStats} />
           ) : activeTab === "training" ? (
             <TrainingTab />
           ) : activeTab === "seasons" ? (

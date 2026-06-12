@@ -1,6 +1,49 @@
 "use client";
 import { useState } from "react";
 
+const positiveStatKeys = new Set([
+  "goals", "assists", "tackles", "interceptions", "key_passes",
+  "big_chances_made", "duels_won", "recoveries", "clearances", "blocks",
+  "cleanSheet", "totalSaves", "savesInBox", "punches", "runsOut",
+  "highClaims", "penaltySaved", "goal_line_clearances", "fouls_won",
+  "crosses", "dribbles", "passes_opp_half", "longBallsAccurate",
+]);
+
+const negativeStatKeys = new Set([
+  "errors_chance", "mistakes", "big_chances_missed", "yellow_cards",
+  "red_card", "duels_lost", "goalsConceded", "unsucessfullRunsOut",
+  "gkErrorShot", "gkErrorGoal", "penaltyConceded", "off_target_shots",
+  "unsuccessful_touches", "dribbled_past", "fouls_committed",
+  "possession_lost", "penalties_missed", "crosses_missed",
+  "passes_missed_oh", "passes_missed_ah", "longBallMissed",
+  "penalties_committed", "gkErrorShot", "gkErrorGoal",
+]);
+
+const statLabels: Record<string, string> = {
+  goals: "Goals", assists: "Assists", shot_creation: "Shot Creation",
+  dribbles: "Dribbles", key_passes: "Key Passes",
+  big_chances_made: "Big Chances Created", passes_opp_half: "Passes (Opp Half)",
+  tackles: "Tackles", interceptions: "Interceptions", clearances: "Clearances",
+  blocks: "Blocks", duels_won: "Duels Won", recoveries: "Recoveries",
+  fouls_won: "Fouls Won", crosses: "Crosses", longBallsAccurate: "Accurate Long Balls",
+  goal_line_clearances: "Goal-Line Clearances",
+  errors_chance: "Errors Leading to Chance", mistakes: "Mistakes",
+  big_chances_missed: "Big Chances Missed", off_target_shots: "Off Target Shots",
+  unsuccessful_touches: "Unsuccessful Touches", dribbled_past: "Dribbled Past",
+  duels_lost: "Duels Lost", fouls_committed: "Fouls Committed",
+  yellow_cards: "Yellow Cards", red_card: "Red Cards",
+  possession_lost: "Possession Lost", penalties_missed: "Penalties Missed",
+  crosses_missed: "Missed Crosses", passes_missed_oh: "Missed Passes (Own Half)",
+  passes_missed_ah: "Missed Passes (Opp Half)", longBallMissed: "Missed Long Balls",
+  penalties_committed: "Penalties Committed",
+  cleanSheet: "Clean Sheets", totalSaves: "Total Saves",
+  savesInBox: "Saves In Box", punches: "Punches", runsOut: "Runs Out",
+  unsucessfullRunsOut: "Unsuccessful Runs Out", highClaims: "High Claims",
+  gkErrorShot: "Error Leading to Shot", gkErrorGoal: "Error Leading to Goal",
+  penaltySaved: "Penalties Saved", penaltyConceded: "Penalties Conceded",
+  goalsConceded: "Goals Conceded",
+};
+
 function getRatingColor(rating: number): string {
   if (rating < 6) return "#DC0C00";
   if (rating < 6.5) return "#ED7E07";
@@ -18,14 +61,11 @@ function getFeedback(rating: number) {
 }
 
 export default function AnalysisTab({
-  averages,
+  allStats,
 }: {
-  averages: Record<
-    string,
-    { rating: string; positive: Record<string, string>; negative: Record<string, string> }
-  >;
+  allStats: { id: string; position: string; rating: number; stats: Record<string, number> }[];
 }) {
-  const positions = Object.keys(averages);
+  const positions = Array.from(new Set(allStats.map((s) => s.position))).sort();
   const [selectedPos, setSelectedPos] = useState(positions[0] || "");
 
   if (positions.length === 0) {
@@ -36,14 +76,39 @@ export default function AnalysisTab({
     );
   }
 
-  const data = averages[selectedPos];
-  if (!data) return null;
+  const posStats = allStats.filter((s) => s.position === selectedPos);
+  const posMatches = posStats.length;
+  const avgRating = posMatches
+    ? (posStats.reduce((a, s) => a + Number(s.rating), 0) / posMatches).toFixed(2)
+    : "—";
 
-  const ratingNum = Number(data.rating);
+  const sumStats: Record<string, number> = {};
+  const allKeys = new Set<string>();
+  posStats.forEach((s) => {
+    Object.entries(s.stats || {}).forEach(([k, v]) => {
+      allKeys.add(k);
+      sumStats[k] = (sumStats[k] || 0) + v;
+    });
+  });
+
+  const strengths: { label: string; avg: string }[] = [];
+  const weaknesses: { label: string; avg: string }[] = [];
+
+  allKeys.forEach((key) => {
+    const avg = sumStats[key] / posMatches;
+    const label = statLabels[key] || key;
+    if (positiveStatKeys.has(key)) {
+      strengths.push({ label, avg: avg.toFixed(1) });
+    } else if (negativeStatKeys.has(key)) {
+      weaknesses.push({ label, avg: avg.toFixed(1) });
+    }
+  });
+
+  strengths.sort((a, b) => Number(b.avg) - Number(a.avg));
+  weaknesses.sort((a, b) => Number(b.avg) - Number(a.avg));
 
   return (
     <div className="space-y-6">
-      {/* Position Selector */}
       <div className="flex items-center gap-3">
         <label className="text-gray-400 text-sm">Position:</label>
         <select
@@ -57,43 +122,41 @@ export default function AnalysisTab({
             </option>
           ))}
         </select>
+        <span className="text-gray-500 text-xs">{posMatches} matches</span>
       </div>
 
-      {/* Rating Card */}
       <div className="bg-gray-800/50 rounded-xl p-5 border border-gray-700">
         <div className="flex items-center justify-between mb-2">
           <span className="text-gray-400 text-sm">Average Rating</span>
-          <span className="text-gray-500 text-xs">{getFeedback(ratingNum)}</span>
+          <span className="text-gray-500 text-xs">{getFeedback(Number(avgRating))}</span>
         </div>
-        <div className="text-5xl font-extrabold" style={{ color: getRatingColor(ratingNum) }}>
-          {data.rating}
+        <div className="text-5xl font-extrabold" style={{ color: getRatingColor(Number(avgRating)) }}>
+          {avgRating}
         </div>
       </div>
 
-      {/* Strengths */}
-      {Object.keys(data.positive).length > 0 && (
+      {strengths.length > 0 && (
         <div className="bg-gray-800/50 rounded-xl p-5 border border-green-700/40">
           <h3 className="text-green-400 font-bold text-lg mb-3">Key Strengths</h3>
           <div className="space-y-2">
-            {Object.entries(data.positive).map(([k, v]) => (
-              <div key={k} className="flex justify-between items-center py-1.5 border-b border-gray-700/50 last:border-0">
-                <span className="text-gray-300 text-sm">{k}</span>
-                <span className="text-green-400 font-bold text-sm">+{v as string}</span>
+            {strengths.map((s) => (
+              <div key={s.label} className="flex justify-between items-center py-1.5 border-b border-gray-700/50 last:border-0">
+                <span className="text-gray-300 text-sm">{s.label}</span>
+                <span className="text-green-400 font-bold text-sm">{s.avg} avg</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Weaknesses */}
-      {Object.keys(data.negative).length > 0 && (
+      {weaknesses.length > 0 && (
         <div className="bg-gray-800/50 rounded-xl p-5 border border-red-700/40">
           <h3 className="text-red-400 font-bold text-lg mb-3">Weaknesses</h3>
           <div className="space-y-2">
-            {Object.entries(data.negative).map(([k, v]) => (
-              <div key={k} className="flex justify-between items-center py-1.5 border-b border-gray-700/50 last:border-0">
-                <span className="text-gray-300 text-sm">{k}</span>
-                <span className="text-red-400 font-bold text-sm">{v as string}</span>
+            {weaknesses.map((s) => (
+              <div key={s.label} className="flex justify-between items-center py-1.5 border-b border-gray-700/50 last:border-0">
+                <span className="text-gray-300 text-sm">{s.label}</span>
+                <span className="text-red-400 font-bold text-sm">{s.avg} avg</span>
               </div>
             ))}
           </div>
