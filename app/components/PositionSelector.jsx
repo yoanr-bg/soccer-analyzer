@@ -14,15 +14,15 @@ import {
 
 const formationLayout = {
   striker:           { top: "2%",   left: "45%" },
-  right_winger:      { top: "17%",  left: "82%" },
+  right_winger:      { top: "17%",  left: "86%" },
   left_winger:       { top: "17%",  left: "2%" },
-  attacking_mid:     { top: "19%",  left: "50%" },
-  central_mid:       { top: "45%",  left: "35%" },
-  defensive_mid:     { top: "45%",  left: "65%" },
+  attacking_mid:     { top: "25%",  left: "40%" },
+  central_mid:       { top: "45%",  left: "20%" },
+  defensive_mid:     { top: "45%",  left: "60%" },
   left_back:         { top: "63%",  left: "5%" },
-  right_back:        { top: "63%",  left: "79%" },
-  left_center_back:  { top: "75%",  left: "26.5%" },
-  right_center_back: { top: "75%",  left: "53.5%" },
+  right_back:        { top: "63%",  left: "84%" },
+  left_center_back:  { top: "75%",  left: "26%" },
+  right_center_back: { top: "75%",  left: "56%" },
   goalkeeper:        { top: "87%",  left: "44%" },
 };
 
