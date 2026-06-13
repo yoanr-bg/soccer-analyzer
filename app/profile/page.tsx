@@ -90,24 +90,19 @@ export default function ProfilePage() {
         const sumRating = entries.reduce((total: number, e: any) => total + Number(e.rating), 0);
         const avgRating = (sumRating / entries.length).toFixed(2);
 
-        const sumPositive: Record<string, number> = {};
-        const sumNegative: Record<string, number> = {};
+        const sumStats: Record<string, number> = {};
 
         entries.forEach((e: any) => {
-          const pos_arr = Array.isArray(e.positive) ? e.positive : [];
-          const neg_arr = Array.isArray(e.negative) ? e.negative : [];
-          pos_arr.forEach((stat: any) => { sumPositive[stat.label] = (sumPositive[stat.label] || 0) + stat.value; });
-          neg_arr.forEach((stat: any) => { sumNegative[stat.label] = (sumNegative[stat.label] || 0) + stat.value; });
+          Object.entries(e.stats || {}).forEach(([k, v]) => {
+            sumStats[k] = (sumStats[k] || 0) + (v as number);
+          });
         });
 
-        const avgPositive: Record<string, string> = Object.fromEntries(
-          Object.entries(sumPositive).map(([k, v]) => [k, (v / entries.length).toFixed(1)])
-        );
-        const avgNegative: Record<string, string> = Object.fromEntries(
-          Object.entries(sumNegative).map(([k, v]) => [k, (v / entries.length).toFixed(1)])
+        const avgStats: Record<string, string> = Object.fromEntries(
+          Object.entries(sumStats).map(([k, v]) => [k, (v / entries.length).toFixed(1)])
         );
 
-        avgRatings[pos] = { rating: avgRating, positive: avgPositive, negative: avgNegative };
+        avgRatings[pos] = { rating: avgRating, stats: avgStats };
       }
     });
 
@@ -290,7 +285,7 @@ export default function ProfilePage() {
             ) : activeTab === "seasons" ? (
               <SeasonsTab seasons={seasons} userId={user.id} onDelete={handleDeleteSeasons} />
             ) : activeTab === "compare" ? (
-              <CompareTab averages={averages} seasons={seasons} />
+              <CompareTab allStats={allStats} seasons={seasons} />
             ) : null}
           </div>
         </main>

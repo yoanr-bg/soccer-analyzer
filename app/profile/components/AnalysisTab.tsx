@@ -113,7 +113,7 @@ export default function AnalysisTab({
 
       <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-0">
         <div className="bg-gray-800/50 rounded-xl p-5 border border-green-700/40 overflow-auto">
-          <h3 className="text-green-400 font-bold text-lg mb-3 sticky top-0 bg-gray-800/50">Key Strengths</h3>
+          <h3 className="text-green-400 font-bold text-lg mb-3 sticky top-0 bg-gray-800/50">Strengths</h3>
           <div className="space-y-2">
             {strengths.map((s) => (
               <div key={s.label} className="flex justify-between items-center py-1.5 border-b border-gray-700/50 last:border-0">
