@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { statLabels } from "../../lib/statDefs";
 
 const positiveStatKeys = new Set([
   "goals", "assists", "tackles", "interceptions", "key_passes",
@@ -18,31 +19,6 @@ const negativeStatKeys = new Set([
   "passes_missed_oh", "passes_missed_ah", "longBallMissed",
   "penalties_committed", "gkErrorShot", "gkErrorGoal",
 ]);
-
-const statLabels: Record<string, string> = {
-  goals: "Goals", assists: "Assists", shot_creation: "Shot Creation",
-  dribbles: "Dribbles", key_passes: "Key Passes",
-  big_chances_made: "Big Chances Created", passes_opp_half: "Passes (Opp Half)",
-  tackles: "Tackles", interceptions: "Interceptions", clearances: "Clearances",
-  blocks: "Blocks", duels_won: "Duels Won", recoveries: "Recoveries",
-  fouls_won: "Fouls Won", crosses: "Crosses", longBallsAccurate: "Accurate Long Balls",
-  goal_line_clearances: "Goal-Line Clearances",
-  errors_chance: "Errors Leading to Chance", mistakes: "Mistakes",
-  big_chances_missed: "Big Chances Missed", off_target_shots: "Off Target Shots",
-  unsuccessful_touches: "Unsuccessful Touches", dribbled_past: "Dribbled Past",
-  duels_lost: "Duels Lost", fouls_committed: "Fouls Committed",
-  yellow_cards: "Yellow Cards", red_card: "Red Cards",
-  possession_lost: "Possession Lost", penalties_missed: "Penalties Missed",
-  crosses_missed: "Missed Crosses", passes_missed_oh: "Missed Passes (Own Half)",
-  passes_missed_ah: "Missed Passes (Opp Half)", longBallMissed: "Missed Long Balls",
-  penalties_committed: "Penalties Committed",
-  cleanSheet: "Clean Sheets", totalSaves: "Total Saves",
-  savesInBox: "Saves In Box", punches: "Punches", runsOut: "Runs Out",
-  unsucessfullRunsOut: "Unsuccessful Runs Out", highClaims: "High Claims",
-  gkErrorShot: "Error Leading to Shot", gkErrorGoal: "Error Leading to Goal",
-  penaltySaved: "Penalties Saved", penaltyConceded: "Penalties Conceded",
-  goalsConceded: "Goals Conceded",
-};
 
 function getRatingColor(rating: number): string {
   if (rating < 6) return "#DC0C00";

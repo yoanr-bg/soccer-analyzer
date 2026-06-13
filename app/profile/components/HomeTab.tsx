@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import PerformanceChart from "./PerformanceChart";
+import { statLabels } from "../../lib/statDefs";
 
 const positionCategories: Record<string, string[]> = {
   forward: ["striker", "left_winger", "right_winger"],
@@ -17,14 +18,6 @@ const categoryKeyStats: Record<string, string[]> = {
   defensive_mid: ["tackles", "interceptions", "passes_opp_half", "duels_won"],
   defender: ["tackles", "interceptions", "clearances", "blocks", "duels_won"],
   goalkeeper: ["totalSaves", "cleanSheet", "highClaims", "savesInBox"],
-};
-
-const statLabels: Record<string, string> = {
-  goals: "Goals", assists: "Assists", dribbles: "Dribbles", passes_own_half : "Passes (Own Half)",
-  key_passes: "Key Passes", big_chances_made: "Big Chances", passes_opp_half: "Passes (Opp Half)",
-  tackles: "Tackles", interceptions: "Interceptions", clearances: "Clearances",
-  blocks: "Blocks", duels_won: "Duels Won", totalSaves: "Saves", cleanSheet: "Clean Sheets",
-  highClaims: "High Claims", savesInBox: "Saves In Box",
 };
 
 function getRatingColor(rating: number): string {
