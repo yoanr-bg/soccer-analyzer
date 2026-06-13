@@ -2,6 +2,30 @@
 import { useState } from "react";
 import { statLabels } from "../../lib/statDefs";
 
+const positiveStatKeys = new Set([
+  "goals", "assists", "tackles", "interceptions", "key_passes",
+  "big_chances_made", "duels_won", "recoveries", "clearances", "blocks",
+  "cleanSheet", "totalSaves", "savesInBox", "punches", "runsOut",
+  "highClaims", "penaltySaved", "goal_line_clearances", "fouls_won",
+  "crosses", "dribbles", "passes_opp_half", "longBallsAccurate",
+]);
+
+const negativeStatKeys = new Set([
+  "errors_chance", "mistakes", "big_chances_missed", "yellow_cards",
+  "red_card", "duels_lost", "goalsConceded", "unsucessfullRunsOut",
+  "gkErrorShot", "gkErrorGoal", "penaltyConceded", "off_target_shots",
+  "unsuccessful_touches", "dribbled_past", "fouls_committed",
+  "possession_lost", "penalties_missed", "crosses_missed",
+  "passes_missed_oh", "passes_missed_ah", "longBallMissed",
+  "penalties_committed", "gkErrorShot", "gkErrorGoal",
+]);
+
+function statColor(cur: number | null, past: number | null, key: string): [string, string] {
+  if (cur === null || past === null || cur === past) return ["text-white", "text-white"];
+  const better = (cur > past) === !negativeStatKeys.has(key);
+  return better ? ["text-green-400", "text-red-400"] : ["text-red-400", "text-green-400"];
+}
+
 function getRatingColor(rating: number): string {
   if (rating < 6) return "#DC0C00";
   if (rating < 6.5) return "#ED7E07";
@@ -193,12 +217,12 @@ export default function CompareTab({
                 const past = pastStats[key];
                 const curN = cur ? Number(cur) : null;
                 const pastN = past ? Number(past) : null;
-                const diff = curN !== null && pastN !== null ? (curN - pastN).toFixed(1) : null;
+                const [curColor, pastColor] = statColor(curN, pastN, key);
                 return (
                   <div key={key} className="grid grid-cols-3 gap-4 text-sm px-2 py-2 border-b border-gray-700/50 last:border-0 items-center">
                     <span className="text-gray-300">{label}</span>
-                    <span className="text-center text-white font-semibold">{cur || "—"}</span>
-                    <span className="text-center text-white font-semibold">{past || "—"}</span>
+                    <span className={`text-center font-semibold ${curColor}`}>{cur || "—"}</span>
+                    <span className={`text-center font-semibold ${pastColor}`}>{past || "—"}</span>
                   </div>
                 );
               })}
