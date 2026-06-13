@@ -183,7 +183,7 @@ export default function PositionSelector({ onSelect }) {
                     width: "min(58px, 10cqi)",
                     height: "min(58px, 10cqi)",
                     borderRadius: "50%",
-                    background: ACCENT,
+                    background: "#0B1426",
                     border: `2px solid ${ACCENT}`,
                     display: "flex",
                     alignItems: "center",

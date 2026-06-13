@@ -77,9 +77,11 @@ export default function HomeTab({
     return { label: statLabels[key] || key, value: sum };
   });
 
-  const recentMatches = [...allStats]
-    .sort((a, b) => Number(b.id) - Number(a.id))
-    .slice(0, 5);
+  const [showAllMatches, setShowAllMatches] = useState(false);
+
+  const sortedMatches = [...allStats].sort((a, b) => Number(b.id) - Number(a.id));
+  const recentMatches = sortedMatches.slice(0, 5);
+  const displayMatches = showAllMatches ? sortedMatches : recentMatches;
 
   const [selectedMatch, setSelectedMatch] = useState<(typeof allStats)[number] | null>(null);
 
@@ -157,31 +159,41 @@ export default function HomeTab({
         </div>
       )}
 
-      {/* Recent Matches */}
-      {recentMatches.length > 0 && (
+      {/* Recent / All Matches */}
+      {sortedMatches.length > 0 && (
         <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
-          <h3 className="text-lg font-bold text-white mb-3">Recent Matches</h3>
+          <h3 className="text-lg font-bold text-white mb-3">
+            {showAllMatches ? "All Matches" : "Recent Matches"}
+          </h3>
           <div className="space-y-2">
-            {recentMatches.map((m) => (
+            {displayMatches.map((m) => (
               <button
                 key={m.id}
                 onClick={() => setSelectedMatch(m)}
                 className="w-full flex items-center justify-between bg-gray-700/30 hover:bg-gray-700/60 rounded-lg px-4 py-3 transition-colors text-left"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-400 text-xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-gray-400 text-xs shrink-0">
                     {new Date(Number(m.id)).toLocaleDateString()}
                   </span>
-                  <span className="text-gray-300 text-sm capitalize">
+                  <span className="text-gray-300 text-sm capitalize truncate">
                     {m.position.replace(/_/g, " ")}
                   </span>
                 </div>
-                <span className="font-bold text-lg" style={{ color: getRatingColor(Number(m.rating)) }}>
+                <span className="font-bold text-lg shrink-0" style={{ color: getRatingColor(Number(m.rating)) }}>
                   {Number(m.rating).toFixed(1)}
                 </span>
               </button>
             ))}
           </div>
+          {sortedMatches.length > 5 && (
+            <button
+              onClick={() => setShowAllMatches(!showAllMatches)}
+              className="mt-3 w-full text-center text-sm text-teal-400 hover:text-teal-300 font-semibold transition-colors py-2"
+            >
+              {showAllMatches ? "Show Less" : `View All (${sortedMatches.length})`}
+            </button>
+          )}
         </div>
       )}
 
