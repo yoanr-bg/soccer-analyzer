@@ -91,21 +91,21 @@ export default function AnalysisTab({
     });
   });
 
-  const strengths: { label: string; avg: string }[] = [];
-  const weaknesses: { label: string; avg: string }[] = [];
+  const strengths: { label: string; val: string }[] = [];
+  const weaknesses: { label: string; val: string }[] = [];
 
   allKeys.forEach((key) => {
     const avg = sumStats[key] / posMatches;
     const label = statLabels[key] || key;
     if (positiveStatKeys.has(key)) {
-      strengths.push({ label, avg: avg.toFixed(1) });
+      strengths.push({ label, val: avg.toFixed(1) });
     } else if (negativeStatKeys.has(key)) {
-      weaknesses.push({ label, avg: avg.toFixed(1) });
+      weaknesses.push({ label, val: avg.toFixed(1) });
     }
   });
 
-  strengths.sort((a, b) => Number(b.avg) - Number(a.avg));
-  weaknesses.sort((a, b) => Number(b.avg) - Number(a.avg));
+  strengths.sort((a, b) => Number(b.val) - Number(a.val));
+  weaknesses.sort((a, b) => Number(b.val) - Number(a.val));
 
   return (
     <div className="space-y-6">
@@ -142,7 +142,7 @@ export default function AnalysisTab({
             {strengths.map((s) => (
               <div key={s.label} className="flex justify-between items-center py-1.5 border-b border-gray-700/50 last:border-0">
                 <span className="text-gray-300 text-sm">{s.label}</span>
-                <span className="text-green-400 font-bold text-sm">{s.avg} avg</span>
+                <span className="text-green-400 font-bold text-sm">{s.val} /g</span>
               </div>
             ))}
           </div>
@@ -156,7 +156,7 @@ export default function AnalysisTab({
             {weaknesses.map((s) => (
               <div key={s.label} className="flex justify-between items-center py-1.5 border-b border-gray-700/50 last:border-0">
                 <span className="text-gray-300 text-sm">{s.label}</span>
-                <span className="text-red-400 font-bold text-sm">{s.avg} avg</span>
+                <span className="text-red-400 font-bold text-sm">{s.val} /g</span>
               </div>
             ))}
           </div>
