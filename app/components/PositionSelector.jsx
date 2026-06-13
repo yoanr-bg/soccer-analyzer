@@ -40,18 +40,21 @@ const desktopLayout = {
   goalkeeper:        { top: "90%",  left: "45.5%" },
 };
 
+const ACCENT = "#00bca8";
+const GLOW = "rgba(0,188,168,0.6)";
+
 const positions = [
-  { id: "striker",           name: "Striker",              icon: Target,         color: "#ef4444", glow: "rgba(239,68,68,0.6)" },
-  { id: "right_winger",      name: "Right Winger",         icon: Zap,            color: "#f59e0b", glow: "rgba(245,158,11,0.6)" },
-  { id: "left_winger",       name: "Left Winger",          icon: Zap,            color: "#f59e0b", glow: "rgba(245,158,11,0.6)" },
-  { id: "attacking_mid",     name: "Attacking Midfielder", icon: Crosshair,      color: "#a855f7", glow: "rgba(168,85,247,0.6)" },
-  { id: "central_mid",       name: "Central Midfielder",   icon: Circle,         color: "#3b82f6", glow: "rgba(59,130,246,0.6)" },
-  { id: "defensive_mid",     name: "Defensive Midfielder", icon: Shield,         color: "#64748b", glow: "rgba(100,116,139,0.6)" },
-  { id: "left_back",         name: "Left Back",            icon: ArrowLeftRight, color: "#10b981", glow: "rgba(16,185,129,0.6)" },
-  { id: "right_back",        name: "Right Back",           icon: ArrowLeftRight, color: "#10b981", glow: "rgba(16,185,129,0.6)" },
-  { id: "left_center_back",  name: "Left Center Back",     icon: Castle,     color: "#6366f1", glow: "rgba(99,102,241,0.6)" },
-  { id: "right_center_back", name: "Right Center Back",    icon: Castle,         color: "#6366f1", glow: "rgba(99,102,241,0.6)" },
-  { id: "goalkeeper",        name: "Goalkeeper",           icon: Shield,         color: "#22c55e", glow: "rgba(34,197,94,0.6)" },
+  { id: "striker",           name: "Striker",              icon: Target },
+  { id: "right_winger",      name: "Right Winger",         icon: Zap },
+  { id: "left_winger",       name: "Left Winger",          icon: Zap },
+  { id: "attacking_mid",     name: "Attacking Midfielder", icon: Crosshair },
+  { id: "central_mid",       name: "Central Midfielder",   icon: Circle },
+  { id: "defensive_mid",     name: "Defensive Midfielder", icon: Shield },
+  { id: "left_back",         name: "Left Back",            icon: ArrowLeftRight },
+  { id: "right_back",        name: "Right Back",           icon: ArrowLeftRight },
+  { id: "left_center_back",  name: "Left Center Back",     icon: Castle },
+  { id: "right_center_back", name: "Right Center Back",    icon: Castle },
+  { id: "goalkeeper",        name: "Goalkeeper",           icon: Shield },
 ];
 
 function useMobile() {
@@ -168,7 +171,7 @@ export default function PositionSelector({ onSelect }) {
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05, type: "spring", stiffness: 300, damping: 20 }}
-                whileHover={{ scale: 1.2, filter: `drop-shadow(0 0 12px ${pos.glow})` }}
+                whileHover={{ scale: 1.2, filter: `drop-shadow(0 0 12px ${GLOW})` }}
                 whileTap={{ scale: 0.92 }}
                 onClick={() => onSelect(pos)}
                 className="flex flex-col items-center cursor-pointer"
@@ -180,13 +183,12 @@ export default function PositionSelector({ onSelect }) {
                     width: "min(58px, 10cqi)",
                     height: "min(58px, 10cqi)",
                     borderRadius: "50%",
-                    background: `radial-gradient(circle at 35% 35%, ${pos.color}dd, ${pos.color}88)`,
-                    border: `2px solid ${pos.color}99`,
+                    background: ACCENT,
+                    border: `2px solid ${ACCENT}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow: `0 0 12px ${pos.glow}, 0 4px 16px rgba(0,0,0,0.5)`,
-                    backdropFilter: "blur(4px)",
+                    boxShadow: `0 0 12px ${GLOW}, 0 4px 16px rgba(0,0,0,0.5)`,
                   }}
                 >
                   <Icon style={{ color: "white", width: "min(22px, 4.5cqi)", height: "min(22px, 4.5cqi)", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }} />
@@ -198,7 +200,7 @@ export default function PositionSelector({ onSelect }) {
                   style={{
                     fontFamily: "monospace",
                     fontSize: "min(0.75rem, 2.5cqi)",
-                    textShadow: `0 1px 4px rgba(0,0,0,0.9), 0 0 8px ${pos.glow}`,
+                    textShadow: `0 1px 4px rgba(0,0,0,0.9), 0 0 8px ${GLOW}`,
                   }}
                 >
                   {pos.name}

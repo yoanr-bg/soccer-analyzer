@@ -202,9 +202,9 @@ export default function ProfilePage() {
   if (!user) return <div className="text-white p-8 bg-gray-900">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="h-screen flex flex-col bg-gray-900 text-white">
       {/* Top Bar */}
-      <div className="bg-gray-800 px-4 sm:px-8 py-3 flex items-center justify-between border-b border-gray-700">
+      <div className="bg-gray-800 px-4 sm:px-8 py-3 flex items-center justify-between border-b border-gray-700 flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -233,9 +233,9 @@ export default function ProfilePage() {
       </div>
 
       {/* Layout */}
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className={`${sidebarOpen ? "fixed inset-y-0 left-0 z-50" : "hidden"} lg:relative lg:block lg:z-auto w-56 bg-gray-800/50 border-r border-gray-700 min-h-[calc(100vh-52px)] flex-shrink-0`}>
+        <aside className={`${sidebarOpen ? "fixed inset-y-0 left-0 z-50" : "hidden"} lg:relative lg:block lg:z-auto w-56 bg-gray-800/50 border-r border-gray-700 h-full flex-shrink-0`}>
           {/* Profile info */}
           <div className="p-4 border-b border-gray-700">
             <div className="flex items-center gap-3">
@@ -277,20 +277,22 @@ export default function ProfilePage() {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto max-w-5xl">
-          {loading ? (
-            <div className="text-gray-400 text-center py-16">Loading...</div>
-          ) : activeTab === "home" ? (
-            <HomeTab allStats={allStats} />
-          ) : activeTab === "analysis" ? (
-            <AnalysisTab allStats={allStats} />
-          ) : activeTab === "training" ? (
-            <TrainingTab />
-          ) : activeTab === "seasons" ? (
-            <SeasonsTab seasons={seasons} userId={user.id} onDelete={handleDeleteSeasons} />
-          ) : activeTab === "compare" ? (
-            <CompareTab averages={averages} seasons={seasons} />
-          ) : null}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto h-full">
+          <div className="h-full">
+            {loading ? (
+              <div className="text-gray-400 text-center py-16">Loading...</div>
+            ) : activeTab === "home" ? (
+              <HomeTab allStats={allStats} />
+            ) : activeTab === "analysis" ? (
+              <AnalysisTab allStats={allStats} />
+            ) : activeTab === "training" ? (
+              <TrainingTab />
+            ) : activeTab === "seasons" ? (
+              <SeasonsTab seasons={seasons} userId={user.id} onDelete={handleDeleteSeasons} />
+            ) : activeTab === "compare" ? (
+              <CompareTab averages={averages} seasons={seasons} />
+            ) : null}
+          </div>
         </main>
       </div>
 
