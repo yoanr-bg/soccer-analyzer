@@ -54,21 +54,6 @@ const positions = [
   { id: "goalkeeper",        name: "Goalkeeper",           icon: Shield,         color: "#22c55e", glow: "rgba(34,197,94,0.6)" },
 ];
 
-function PitchStripes() {
-  return (
-    <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-      {Array.from({ length: 10 }).map((_, i) => (
-        <rect
-          key={i}
-          x={`${i * 10}%`} y="0"
-          width="10%" height="100%"
-          fill={i % 2 === 0 ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.0)"}
-        />
-      ))}
-    </svg>
-  );
-}
-
 function useMobile() {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -90,7 +75,7 @@ export default function PositionSelector({ onSelect }) {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{ background: "#111827" }}
+      style={{ background: "#0B1426" }}
     >
       {/* Title */}
       <motion.div
@@ -103,10 +88,10 @@ export default function PositionSelector({ onSelect }) {
           className="text-5xl font-black uppercase tracking-[0.2em] mb-1"
           style={{
             fontFamily: "'Arial Black', sans-serif",
-            background: "linear-gradient(90deg, #2dd4bf, #34d399, #2dd4bf)",
+            background: "linear-gradient(90deg, #00bca8, #06B6D4, #00bca8)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-            filter: "drop-shadow(0 0 20px rgba(45,212,191,0.4))",
+            filter: "drop-shadow(0 0 20px rgba(0,188,168,0.4))",
           }}
         >
           Select Position
@@ -128,8 +113,8 @@ export default function PositionSelector({ onSelect }) {
         <div
           className="absolute inset-0 rounded-xl pointer-events-none"
           style={{
-            boxShadow: "0 0 60px rgba(45,212,191,0.15), 0 0 120px rgba(45,212,191,0.05), inset 0 0 60px rgba(0,0,0,0.4)",
-            border: "2px solid rgba(45,212,191,0.4)",
+            boxShadow: "0 0 60px rgba(0,188,168,0.15), 0 0 120px rgba(0,188,168,0.05), inset 0 0 60px rgba(0,0,0,0.4)",
+            border: "2px solid rgba(0,188,168,0.4)",
             borderRadius: 12,
             zIndex: 10,
           }}
@@ -138,10 +123,8 @@ export default function PositionSelector({ onSelect }) {
         {/* Pitch surface */}
         <div
           className="absolute inset-0 rounded-xl overflow-hidden"
-          style={{ background: "linear-gradient(180deg, #1a4a1a 0%, #1e5c1e 40%, #1a4a1a 100%)" }}
+          style={{ background: "#0B1426" }}
         >
-          <PitchStripes />
-
           {/* Field markings SVG */}
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 125" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
             <line x1="0" y1="62.5" x2="100" y2="62.5" stroke="rgba(255,255,255,0.18)" strokeWidth="0.5"/>
