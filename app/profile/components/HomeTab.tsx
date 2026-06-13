@@ -27,6 +27,15 @@ const statLabels: Record<string, string> = {
   highClaims: "High Claims", savesInBox: "Saves In Box",
 };
 
+function getRatingColor(rating: number): string {
+  if (rating < 6) return "#DC0C00";
+  if (rating < 6.5) return "#ED7E07";
+  if (rating < 7) return "#E4CE6F";
+  if (rating < 8) return "#00C424";
+  if (rating < 9) return "#00ADC4";
+  return "#374DF5";
+}
+
 function getCategoryForPosition(position: string): string | undefined {
   return Object.entries(positionCategories).find(([, v]) => v.includes(position))?.[0];
 }
@@ -74,6 +83,12 @@ export default function HomeTab({
     const sum = posStats.reduce((acc, s) => acc + (s.stats[key] || 0), 0);
     return { label: statLabels[key] || key, value: sum };
   });
+
+  const recentMatches = [...allStats]
+    .sort((a, b) => Number(b.id) - Number(a.id))
+    .slice(0, 5);
+
+  const [selectedMatch, setSelectedMatch] = useState<(typeof allStats)[number] | null>(null);
 
   return (
     <div className="space-y-6">
@@ -145,6 +160,73 @@ export default function HomeTab({
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Recent Matches */}
+      {recentMatches.length > 0 && (
+        <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+          <h3 className="text-lg font-bold text-white mb-3">Recent Matches</h3>
+          <div className="space-y-2">
+            {recentMatches.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setSelectedMatch(m)}
+                className="w-full flex items-center justify-between bg-gray-700/30 hover:bg-gray-700/60 rounded-lg px-4 py-3 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-400 text-xs">
+                    {new Date(Number(m.id)).toLocaleDateString()}
+                  </span>
+                  <span className="text-gray-300 text-sm capitalize">
+                    {m.position.replace(/_/g, " ")}
+                  </span>
+                </div>
+                <span className="font-bold text-lg" style={{ color: getRatingColor(Number(m.rating)) }}>
+                  {Number(m.rating).toFixed(1)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Match Detail Modal */}
+      {selectedMatch && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <div>
+                <h3 className="text-white font-bold text-lg capitalize">
+                  {selectedMatch.position.replace(/_/g, " ")}
+                </h3>
+                <p className="text-gray-400 text-xs">
+                  {new Date(Number(selectedMatch.id)).toLocaleDateString()}
+                </p>
+              </div>
+              <span className="text-3xl font-extrabold" style={{ color: getRatingColor(Number(selectedMatch.rating)) }}>
+                {Number(selectedMatch.rating).toFixed(1)}
+              </span>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(selectedMatch.stats || {}).map(([key, val]) => (
+                  <div key={key} className="flex justify-between bg-gray-700/30 rounded-lg px-3 py-2">
+                    <span className="text-gray-400 text-sm">{statLabels[key] || key}</span>
+                    <span className="text-white font-semibold text-sm">{val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-4 border-t border-gray-700 flex justify-end">
+              <button
+                onClick={() => setSelectedMatch(null)}
+                className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-5 rounded-lg font-semibold text-sm transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
